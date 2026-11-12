@@ -1,0 +1,87 @@
+name: Render Aether videos
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/render.yml"
+      - "src/**"
+      - "project.json"
+      - "requirements.txt"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aether-render-main
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install rendering dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak fonts-dejavu-core
+          python -m pip install -r requirements.txt
+          python -m py_compile src/render.py src/kokoro_voice.py
+
+      - name: Render Instagram and YouTube MP4s
+        run: |
+          python src/render.py --project project.json --out-dir output --format both --fps 30
+
+      - name: Verify actual exports
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('output/delivery_report.json').read_text())
+          assert report['all_passed'], 'Render gate failed'
+          assert len(report['outputs']) == 2, 'Expected 2 rendered videos'
+          for item in report['outputs']:
+              assert item['passed'], item
+              assert item['checks']['full_decode'], item
+              p = Path(item['file'])
+              assert p.is_file() and p.stat().st_size > 0, p
+              print(f"Verified {p.name}: {p.stat().st_size:,} bytes")
+          for p in ['output/thumbnail.png', 'output/captions.srt']:
+              assert Path(p).is_file(), p
+          PY
+
+      - name: Publish downloadable build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AetherRendering-MP4-exports
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            output/instagram_1080x1920.mp4
+            output/youtube_1920x1080.mp4
+            output/thumbnail.png
+            output/captions.srt
+            output/delivery_report.json
+
+      - name: Commit validated video files into repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add output/instagram_1080x1920.mp4 output/youtube_1920x1080.mp4 output/thumbnail.png output/captions.srt output/delivery_report.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Render and publish verified MP4 demonstration files [skip ci]"
+            git push origin HEAD:main
+          else
+            echo "No changes to rendered videos."
+          fi
