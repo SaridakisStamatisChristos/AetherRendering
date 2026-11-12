@@ -1,0 +1,35 @@
+1
+00:00:00,000 --> 00:00:02,155
+A script is not a video.
+
+2
+00:00:02,155 --> 00:00:04,433
+A storyboard is not a video.
+
+3
+00:00:04,433 --> 00:00:06,869
+We need to render real frames.
+
+4
+00:00:06,869 --> 00:00:09,743
+Then synchronize the actual narration.
+
+5
+00:00:09,743 --> 00:00:13,327
+Captions must remain readable on every screen.
+
+6
+00:00:13,327 --> 00:00:16,744
+Vertical and horizontal need different layouts.
+
+7
+00:00:16,744 --> 00:00:20,177
+The encoder creates real M P four files.
+
+8
+00:00:20,177 --> 00:00:23,744
+Automated checks verify both video outputs.
+
+9
+00:00:23,744 --> 00:00:26,772
+This is a genuinely rendered demonstration.
