@@ -10,8 +10,7 @@ import os
 from pathlib import Path
 import re
 import sys
-import urllib.error
-import urllib.request
+from gemini_router import route_plan, discover_models, RouterError
 
 SCENE_KEYS = {'title', 'subtitle', 'narration', 'duration', 'motion'}
 MOTIONS = {'rise', 'slide', 'zoom', 'rotate', 'pop'}
@@ -67,41 +66,29 @@ def demo_plan(topic, duration):
     })
 
 
-def gemini_plan(topic, duration, model):
-    api_key = os.environ.get('GEMINI_API_KEY')
-    if not api_key:
-        raise RuntimeError('GEMINI_API_KEY is required for --provider gemini. Configure it as a GitHub Actions secret.')
-    if not re.fullmatch(r'[a-zA-Z0-9_.-]+', model):
-        raise ValueError('Unsafe model identifier')
+def gemini_prompt(topic, duration):
     n = max(3, min(15, round(duration / 5)))
-    prompt = (f'Create an ORIGINAL short educational social video about: {topic!r}. '
-              f'Target approximately {duration} seconds split into {n} scenes. '
-              'Return ONLY JSON: {"topic":str,"accent":"#4CE0C1","scenes":'
-              '[{"title":str,"subtitle":str,"narration":str,"duration":number,"motion":str}]}. '
-              'Each scene lasts 2–15 seconds. Motion must be one of rise,slide,zoom,rotate,pop. '
-              'Use a persuasive opening, logically developed explanation, useful takeaway. '
-              'Do not fabricate research, statistics, product pricing, quotations, or factual claims. '
-              'Keep title under 75 characters, subtitle under 160, narration under 380. '
-              'Ensure narration fits the time at a normal speaking rate. '
-              'No markdown, no JavaScript, no URLs, no external assets. '
-              'Use clear readable language; vary scene motions meaningfully.')
-    url = f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent'
-    request_body = json.dumps({
-        'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],
-        'generationConfig': {'responseMimeType': 'application/json', 'temperature': 0.65},
-    }).encode('utf-8')
-    request = urllib.request.Request(url, data=request_body,
-        headers={'Content-Type': 'application/json', 'x-goog-api-key': api_key}, method='POST')
-    try:
-        with urllib.request.urlopen(request, timeout=100) as response:
-            result = json.load(response)
-    except urllib.error.HTTPError as exc:
-        raise RuntimeError(f'Gemini HTTP {exc.code}: check model, permissions and quota') from exc
-    try:
-        text = ''.join(p.get('text', '') for p in result['candidates'][0]['content']['parts'])
-        return validate_plan(json.loads(text))
-    except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as exc:
-        raise RuntimeError('Gemini did not return a valid video plan. No render was started.') from exc
+    return (f'Create an ORIGINAL short educational social video about: {topic!r}. '
+            f'Target approximately {duration} seconds split into {n} scenes. '
+            'Return ONLY JSON: {"topic":str,"accent":"#4CE0C1","scenes":'
+            '[{"title":str,"subtitle":str,"narration":str,"duration":number,"motion":str}]}. '
+            'Each scene lasts 2–15 seconds. Motion must be one of rise,slide,zoom,rotate,pop. '
+            'Use a persuasive opening, logically developed explanation, useful takeaway. '
+            'Do not fabricate research, statistics, product pricing, quotations, or factual claims. '
+            'Keep title under 75 characters, subtitle under 160, narration under 380. '
+            'Ensure narration fits the time at a normal speaking rate. '
+            'No markdown, no JavaScript, no URLs, no external assets. '
+            'Use clear readable language; vary scene motions meaningfully.')
+
+
+def gemini_plan(topic, duration, model='auto', complexity='auto',
+                router_config='config/gemini_router.json',
+                usage_state='state/gemini_usage.json',
+                router_audit='build/gemini_router_audit.json'):
+    prompt = gemini_prompt(topic, duration)
+    plan, _ = route_plan(prompt, router_config, usage_state, router_audit,
+                         model, complexity, topic, duration, validate_plan)
+    return plan
 
 
 def main():
@@ -109,12 +96,23 @@ def main():
     ap.add_argument('--topic', required=True)
     ap.add_argument('--duration', type=int, default=25)
     ap.add_argument('--provider', choices=['demo', 'gemini'], default='demo')
-    ap.add_argument('--model', default=os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash'))
+    ap.add_argument('--model', default=os.environ.get('GEMINI_MODEL', 'auto'), help='auto or configured Gemini model ID')
+    ap.add_argument('--complexity', choices=['auto', 'simple', 'standard', 'complex'], default='auto')
+    ap.add_argument('--router-config', default='config/gemini_router.json')
+    ap.add_argument('--usage-state', default='state/gemini_usage.json')
+    ap.add_argument('--router-audit', default='build/gemini_router_audit.json')
+    ap.add_argument('--list-models', action='store_true', help='Discover supported Gemini models without generating a video')
     ap.add_argument('--out', default='build/video_plan.json')
     args = ap.parse_args()
+    if args.list_models:
+        models = sorted(discover_models(os.environ.get('GEMINI_API_KEY', '')))
+        print(json.dumps({'generateContent_models': models}, indent=2))
+        return
     if not (6 <= args.duration <= 120):
         ap.error('Duration must be between 6 and 120 seconds')
-    plan = gemini_plan(args.topic, args.duration, args.model) if args.provider == 'gemini' else demo_plan(args.topic, args.duration)
+    plan = (gemini_plan(args.topic, args.duration, args.model, args.complexity,
+                        args.router_config, args.usage_state, args.router_audit)
+            if args.provider == 'gemini' else demo_plan(args.topic, args.duration))
     dest = Path(args.out)
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
