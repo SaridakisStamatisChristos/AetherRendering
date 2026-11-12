@@ -1,0 +1,18 @@
+{
+  "engine": "hyperframes",
+  "voice_engine": "kokoro-local",
+  "outputs": [
+    {
+      "path": "/home/runner/work/AetherRendering/AetherRendering/build/exports/vertical.mp4",
+      "size": 1232134,
+      "duration": 9.166667,
+      "full_decode": true
+    },
+    {
+      "path": "/home/runner/work/AetherRendering/AetherRendering/build/exports/horizontal.mp4",
+      "size": 1269833,
+      "duration": 9.166667,
+      "full_decode": true
+    }
+  ]
+}
