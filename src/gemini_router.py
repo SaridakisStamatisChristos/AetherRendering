@@ -272,8 +272,16 @@ def route_plan(prompt, cfg_path, usage_path, audit_path, model, complexity, topi
             parsed = json.loads(raw)
             plan = validator(parsed)
             usage = response.get('usageMetadata', {})
-            finish(usage_path, name, reserved, True, usage.get('promptTokenCount'),
-                   usage.get('candidatesTokenCount'), now=now_fn())
+            input_count = usage.get('promptTokenCount')
+            total_count = usage.get('totalTokenCount')
+            # Count reasoning/thought tokens, not just visible candidate text.
+            if type(input_count) is int and type(total_count) is int and total_count >= input_count:
+                generated_count = total_count - input_count
+            else:
+                generated_count = (usage.get('candidatesTokenCount', 0)
+                                   + usage.get('thoughtsTokenCount', 0))
+            finish(usage_path, name, reserved, True, input_count,
+                   generated_count, now=now_fn())
             audit['attempts'].append({'model': name, 'status': 'success'})
             audit['selected_model'] = name
             _atomic_json(audit_path, audit)
