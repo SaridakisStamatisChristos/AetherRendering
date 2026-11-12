@@ -1,0 +1,17 @@
+{
+  "project_name": "Real Rendering Demo",
+  "brand": "AETHER VIDEO ENGINE",
+  "accent": "#4CE0C1",
+  "voice": {"engine": "espeak-demo", "rate_wpm": 148},
+  "scenes": [
+    {"title": "A SCRIPT IS NOT A VIDEO", "subtitle": "Words are only the starting point.", "narration": "A script is not a video.", "visual": "script"},
+    {"title": "A STORYBOARD IS NOT A VIDEO", "subtitle": "Frames must become a playable sequence.", "narration": "A storyboard is not a video.", "visual": "storyboard"},
+    {"title": "RENDER THE FRAMES", "subtitle": "Every shot gets encoded into motion.", "narration": "We need to render real frames.", "visual": "frames"},
+    {"title": "SYNCHRONIZE THE SOUND", "subtitle": "Use measured narration duration.", "narration": "Then synchronize the actual narration.", "visual": "wave"},
+    {"title": "KEEP CAPTIONS READABLE", "subtitle": "Respect mobile safe zones and contrast.", "narration": "Captions must remain readable on every screen.", "visual": "captions"},
+    {"title": "DESIGN FOR EACH FORMAT", "subtitle": "Reflow. Never stretch the composition.", "narration": "Vertical and horizontal need different layouts.", "visual": "aspect"},
+    {"title": "EXPORT ACTUAL FILES", "subtitle": "H.264 video + AAC audio in MP4.", "narration": "The encoder creates real M P four files.", "visual": "export"},
+    {"title": "VERIFY THE RESULT", "subtitle": "Resolution, duration, streams and decodability.", "narration": "Automated checks verify both video outputs.", "visual": "checks"},
+    {"title": "THIS IS THE PROOF", "subtitle": "Rendered locally, not simulated.", "narration": "This is a genuinely rendered demonstration.", "visual": "proof"}
+  ]
+}
