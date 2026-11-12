@@ -4,9 +4,9 @@
 
 AetherRendering produces short, narrated videos in **Instagram/Reels portrait (1080 × 1920)** and **YouTube landscape (1920 × 1080)** formats. It contains an AI Director, a Gemini model router, a deterministic HTML/JavaScript scene compiler, local speech synthesis through HyperFrames' Kokoro integration, and FFmpeg validation. A separate FFmpeg/Pillow demonstration renderer remains available as a fallback.
 
-> **New here?** You do **not** need to fork HyperFrames or Kokoro, install either on your computer, or obtain a Gemini API key to try the *demo*. Start with [**Quick start: GitHub Actions**](#1-quick-start-no-installation). For **original AI-written scripts**, see [Enable Gemini](#2-enable-gemini-ai-generation).
+> **New here?** For a demo without installing anything locally, start with [**GitHub Actions**](#1-quick-start-no-installation). To run the entire engine on your Ubuntu PC, follow the [**Local Installation & Setup Guide**](docs/LOCAL_SETUP.md). You do **not** need to fork HyperFrames or Kokoro. Original Gemini-written scripts require an API key.
 
-[Run a video workflow](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/workflows/ai-reel.yml) · [Verified sample MP4s](#sample-videos) · [Ubuntu setup](#4-local-ubuntu-installation) · [Gemini router configuration](config/gemini_router.json)
+[Run a video workflow](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/workflows/ai-reel.yml) · [Verified sample MP4s](#sample-videos) · [**Full Ubuntu installation guide**](docs/LOCAL_SETUP.md) · [Gemini router configuration](config/gemini_router.json)
 
 ## What is actually implemented?
 
@@ -186,139 +186,38 @@ No fork of either upstream project is required. The new pipeline's `prepare_audi
 
 ---
 
-## 4. Local Ubuntu installation
+## 4. Local Ubuntu installation and setup
 
-You can develop locally instead of using GitHub's runner. The basic system does **not** require a dedicated GPU.
+**Full step-by-step guide:** [**docs/LOCAL_SETUP.md — Local Installation & Setup**](docs/LOCAL_SETUP.md)
 
-### Prerequisites
+The new guide explains **Ubuntu 24.04/22.04 requirements**, Node.js 22+ installation with nvm, Python 3.11+ virtual environments (including a Python 3.12 alternative for older Ubuntu), FFmpeg, Kokoro voice testing, browser installation, Gemini key handling, MP4 verification, upgrades, and troubleshooting.
 
-- Ubuntu Linux and Git
-- Python **3.11 or newer** with `venv` and `pip`
-- Node.js **22 or newer** with `npm`/`npx` (from [nodejs.org](https://nodejs.org/en/download) if your distro provides an older version)
-- FFmpeg, `espeak-ng`, `libsndfile1`
-- Internet access for the initial CLI, browser and model downloads
+You do **not** need to fork either HyperFrames or Kokoro. The primary video pipeline obtains HyperFrames through `npx`, and its built-in Kokoro TTS generates local WAV narration. A Gemini key is needed only if you want original AI-written scripts.
 
-```bash
-sudo apt update
-sudo apt install -y git ffmpeg espeak-ng libsndfile1 \
-  python3 python3-venv python3-pip
+### At a glance (after completing the installation guide)
 
-# Check prerequisites
-python3 --version
-node --version
-npx --version
-ffmpeg -version
-```
-
-If `node --version` is below `v22`, install a newer version of Node.js before continuing.
-
-### Clone and set up
+From the repository root, activate the Python virtual environment and run a short demonstration without a Gemini key:
 
 ```bash
-git clone https://github.com/SaridakisStamatisChristos/AetherRendering.git
-cd AetherRendering
-
-python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-
-# Dependencies used in the GitHub integration and optional speech adapters
-python -m pip install kokoro-onnx soundfile
-
-# Verify the Python parts
 python -m unittest discover -s tests -v
-
-# Prepare the headless browser used for video rendering
 npx --yes hyperframes browser ensure
-```
 
-The `npx` CLI currently resolves HyperFrames without a committed, pinned npm version. For reproducible production, pin a tested release and record the installed version in your run report.
-
-### Option A: Local demo video (no Gemini key)
-
-Run these commands from the repository root:
-
-```bash
 python src/ai_director.py \
-  --topic "Why lightning comes before thunder" \
-  --provider demo \
-  --duration 25 \
-  --out build/video_plan.json
+  --provider demo --topic "How video rendering works" \
+  --duration 15 --out build/video_plan.json
 
 python src/hyperframes_pipeline.py \
-  --plan build/video_plan.json \
-  --out-dir build/hyperframes \
-  --voice af_heart \
-  --tts \
-  --render \
-  --output build/exports \
-  --fps 30
+  --plan build/video_plan.json --out-dir build/hyperframes \
+  --voice af_heart --tts --render \
+  --output build/exports --fps 30
 ```
 
-You should get:
+**Outputs:** `build/exports/vertical.mp4`, `build/exports/horizontal.mp4`, and `build/exports/report.json`.
 
-```text
-build/exports/vertical.mp4
-build/exports/horizontal.mp4
-build/exports/report.json
-```
+For original topic-specific narration, configure `GEMINI_API_KEY` and use `--provider gemini --model auto`, following [the exact local Gemini instructions](docs/LOCAL_SETUP.md#7-generate-an-original-ai-written-video-with-gemini).
 
-### Option B: Local AI-generated video
-
-Enter the API key for the current shell without putting it in the command text:
-
-```bash
-read -r -s -p "Gemini API key: " GEMINI_API_KEY
-echo
-export GEMINI_API_KEY
-```
-
-You can see which models the key exposes with:
-
-```bash
-python src/ai_director.py --topic "model discovery" --list-models
-```
-
-Then create and render a video:
-
-```bash
-python src/ai_director.py \
-  --topic "What are black holes?" \
-  --provider gemini \
-  --model auto \
-  --complexity auto \
-  --duration 30 \
-  --out build/video_plan.json
-
-python src/hyperframes_pipeline.py \
-  --plan build/video_plan.json \
-  --out-dir build/hyperframes \
-  --voice af_heart \
-  --tts \
-  --render \
-  --output build/exports \
-  --fps 30
-
-unset GEMINI_API_KEY
-```
-
-**Duration is approximate.** Real narration WAV lengths determine the final timeline. The requested seconds are a creative target, not a guaranteed output duration.
-
-### Option C: Compile video code without rendering
-
-This is useful when developing scene templates or reviewing the storyboard:
-
-```bash
-python src/ai_director.py --topic "Motion graphics" --provider demo --duration 25
-python src/hyperframes_pipeline.py --plan build/video_plan.json \
-  --out-dir build/hyperframes
-
-cd build/hyperframes/vertical
-npx --yes hyperframes preview
-```
-
-This produces HTML/GSAP composition files and a resolved plan. **No WAV or MP4** is generated without `--tts --render`. Run subsequent Python commands again from the repository root.
+**Important:** `--duration` is a target; actual output length follows measured voice durations. The new pipeline's animation style is currently text/motion-graphics based, not cinematic footage. The full setup guide is the canonical source for detailed Linux commands.
 
 ---
 
