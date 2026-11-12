@@ -110,6 +110,16 @@ class RouterTests(unittest.TestCase):
         self.assertEqual((rec['requests'], rec['successes'], rec['input_tokens'], rec['output_tokens']), (1, 1, 100, 60))
         self.assertNotIn('MOCK_KEY', self.audit.read_text() + self.usage.read_text())
 
+    def test_thinking_tokens_are_counted(self):
+        result = success_json()
+        result['usageMetadata'].update(thoughtsTokenCount=80, totalTokenCount=240)
+        api = SimulatedAPI({'gemini-3.8-flash'}, {'gemini-3.8-flash': result})
+        self.route(api)
+        state = json.loads(self.usage.read_text())
+        record = state['days']['2026-11-12']['gemini-3.8-flash']
+        self.assertEqual(record['input_tokens'], 100)
+        self.assertEqual(record['output_tokens'], 140)  # 60 answer + 80 thoughts
+
     def test_fallback_on_429_and_count_failed_request(self):
         api = SimulatedAPI({'gemini-3.8-flash', 'gemini-3.7-flash'},
                            {'gemini-3.8-flash': 429, 'gemini-3.7-flash': success_json()})
