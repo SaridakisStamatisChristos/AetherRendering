@@ -1,0 +1,23 @@
+name: Gemini router unit tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ai_director.py'
+      - 'src/gemini_router.py'
+      - 'tests/**'
+      - 'config/gemini_router.json'
+      - '.github/workflows/router-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test offline model router and existing compiler
+        run: python -m unittest discover -s tests -v
