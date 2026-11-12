@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+"""Create an original, validated video plan. Demo requires no API key; Gemini does.
+
+The model produces DATA (a constrained shot list), never executable JS/HTML.
+The deterministic HyperFrames compiler transforms this data into real animation code.
+"""
+import argparse
+import json
+import os
+from pathlib import Path
+import re
+import sys
+import urllib.error
+import urllib.request
+
+SCENE_KEYS = {'title', 'subtitle', 'narration', 'duration', 'motion'}
+MOTIONS = {'rise', 'slide', 'zoom', 'rotate', 'pop'}
+
+
+def validate_plan(plan):
+    if not isinstance(plan, dict):
+        raise ValueError('Plan must be a JSON object')
+    scenes = plan.get('scenes')
+    if not isinstance(scenes, list) or not (2 <= len(scenes) <= 30):
+        raise ValueError('Expected 2–30 scenes')
+    if not isinstance(plan.get('topic'), str) or not (3 <= len(plan['topic']) <= 180):
+        raise ValueError('Invalid topic')
+    accent = plan.get('accent', '#4CE0C1')
+    if not isinstance(accent, str) or not re.fullmatch(r'#[0-9A-Fa-f]{6}', accent):
+        raise ValueError('accent must be a #RRGGBB colour')
+    for i, scene in enumerate(scenes):
+        if not isinstance(scene, dict) or set(scene) - SCENE_KEYS:
+            raise ValueError(f'Scene {i}: unsupported keys')
+        for field, max_chars in [('title', 75), ('subtitle', 160), ('narration', 380)]:
+            value = scene.get(field)
+            if not isinstance(value, str) or not value.strip() or len(value) > max_chars:
+                raise ValueError(f'Scene {i}: invalid {field}')
+        duration = scene.get('duration')
+        if not isinstance(duration, (int, float)) or isinstance(duration, bool) or not (2 <= duration <= 15):
+            raise ValueError(f'Scene {i}: duration must be 2–15 seconds')
+        if scene.get('motion', 'rise') not in MOTIONS:
+            raise ValueError(f'Scene {i}: unknown motion preset')
+    if sum(s['duration'] for s in scenes) > 180:
+        raise ValueError('Video must be 180 seconds or shorter')
+    return plan
+
+
+def demo_plan(topic, duration):
+    heads = [
+        ('THE BIG QUESTION', f'What if we understood {topic} differently?', 'rise'),
+        ('THE COMMON ASSUMPTION', 'Most explanations skip the mechanism.', 'slide'),
+        ('WHAT ACTUALLY MATTERS', 'Break the problem into one measurable step.', 'zoom'),
+        ('PUT IT TO WORK', 'Test the idea, observe results, then improve.', 'pop'),
+        ('THE TAKEAWAY', 'Use evidence instead of just following the hype.', 'rotate'),
+    ]
+    # Demonstration wording is intentionally generic, not fabricated factual content.
+    count = 3 if duration <= 18 else 5
+    per = max(2.0, min(15.0, duration / count))
+    return validate_plan({
+        'topic': topic, 'accent': '#4CE0C1',
+        'scenes': [
+            {'title': title, 'subtitle': subtitle, 'narration': narration,
+             'duration': round(per, 3), 'motion': motion}
+            for title, narration, motion in heads[:count]
+            for subtitle in [narration]
+        ],
+    })
+
+
+def gemini_plan(topic, duration, model):
+    api_key = os.environ.get('GEMINI_API_KEY')
+    if not api_key:
+        raise RuntimeError('GEMINI_API_KEY is required for --provider gemini. Configure it as a GitHub Actions secret.')
+    if not re.fullmatch(r'[a-zA-Z0-9_.-]+', model):
+        raise ValueError('Unsafe model identifier')
+    n = max(3, min(15, round(duration / 5)))
+    prompt = (f'Create an ORIGINAL short educational social video about: {topic!r}. '
+              f'Target approximately {duration} seconds split into {n} scenes. '
+              'Return ONLY JSON: {"topic":str,"accent":"#4CE0C1","scenes":'
+              '[{"title":str,"subtitle":str,"narration":str,"duration":number,"motion":str}]}. '
+              'Each scene lasts 2–15 seconds. Motion must be one of rise,slide,zoom,rotate,pop. '
+              'Use a persuasive opening, logically developed explanation, useful takeaway. '
+              'Do not fabricate research, statistics, product pricing, quotations, or factual claims. '
+              'Keep title under 75 characters, subtitle under 160, narration under 380. '
+              'Ensure narration fits the time at a normal speaking rate. '
+              'No markdown, no JavaScript, no URLs, no external assets. '
+              'Use clear readable language; vary scene motions meaningfully.')
+    url = f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent'
+    request_body = json.dumps({
+        'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],
+        'generationConfig': {'responseMimeType': 'application/json', 'temperature': 0.65},
+    }).encode('utf-8')
+    request = urllib.request.Request(url, data=request_body,
+        headers={'Content-Type': 'application/json', 'x-goog-api-key': api_key}, method='POST')
+    try:
+        with urllib.request.urlopen(request, timeout=100) as response:
+            result = json.load(response)
+    except urllib.error.HTTPError as exc:
+        raise RuntimeError(f'Gemini HTTP {exc.code}: check model, permissions and quota') from exc
+    try:
+        text = ''.join(p.get('text', '') for p in result['candidates'][0]['content']['parts'])
+        return validate_plan(json.loads(text))
+    except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise RuntimeError('Gemini did not return a valid video plan. No render was started.') from exc
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument('--topic', required=True)
+    ap.add_argument('--duration', type=int, default=25)
+    ap.add_argument('--provider', choices=['demo', 'gemini'], default='demo')
+    ap.add_argument('--model', default=os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash'))
+    ap.add_argument('--out', default='build/video_plan.json')
+    args = ap.parse_args()
+    if not (6 <= args.duration <= 120):
+        ap.error('Duration must be between 6 and 120 seconds')
+    plan = gemini_plan(args.topic, args.duration, args.model) if args.provider == 'gemini' else demo_plan(args.topic, args.duration)
+    dest = Path(args.out)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+    print(f'Plan written: {dest} ({len(plan["scenes"])} scenes, {sum(s["duration"] for s in plan["scenes"]):g}s planned)')
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (RuntimeError, ValueError) as exc:
+        print(f'ERROR: {exc}', file=sys.stderr)
+        raise SystemExit(1)

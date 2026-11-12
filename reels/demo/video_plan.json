@@ -1,0 +1,41 @@
+{
+  "topic": "How a rendered video is made",
+  "accent": "#4CE0C1",
+  "scenes": [
+    {
+      "title": "THE BIG QUESTION",
+      "subtitle": "What if we understood How a rendered video is made differently?",
+      "narration": "What if we understood How a rendered video is made differently?",
+      "duration": 4.8,
+      "motion": "rise"
+    },
+    {
+      "title": "THE COMMON ASSUMPTION",
+      "subtitle": "Most explanations skip the mechanism.",
+      "narration": "Most explanations skip the mechanism.",
+      "duration": 4.8,
+      "motion": "slide"
+    },
+    {
+      "title": "WHAT ACTUALLY MATTERS",
+      "subtitle": "Break the problem into one measurable step.",
+      "narration": "Break the problem into one measurable step.",
+      "duration": 4.8,
+      "motion": "zoom"
+    },
+    {
+      "title": "PUT IT TO WORK",
+      "subtitle": "Test the idea, observe results, then improve.",
+      "narration": "Test the idea, observe results, then improve.",
+      "duration": 4.8,
+      "motion": "pop"
+    },
+    {
+      "title": "THE TAKEAWAY",
+      "subtitle": "Use evidence instead of just following the hype.",
+      "narration": "Use evidence instead of just following the hype.",
+      "duration": 4.8,
+      "motion": "rotate"
+    }
+  ]
+}

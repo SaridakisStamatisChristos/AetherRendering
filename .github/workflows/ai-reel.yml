@@ -1,0 +1,111 @@
+name: AI Video — HyperFrames + Kokoro
+
+on:
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: 'Subject of the video'
+        required: true
+        default: 'How an AI video renderer works'
+      provider:
+        description: 'Director: demo uses no API key; gemini uses GEMINI_API_KEY secret'
+        type: choice
+        options: [demo, gemini]
+        default: demo
+      model:
+        description: 'Gemini model ID; must exist in your API account'
+        default: 'gemini-2.5-flash'
+      seconds:
+        description: 'Target length (6-120); actual duration follows Kokoro voice'
+        default: '25'
+      voice:
+        description: 'Kokoro voice ID (e.g. af_heart or am_michael)'
+        default: 'af_heart'
+      render_video:
+        description: 'Render full MP4 (slower) or just generate compositions'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-reel-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: System dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng libsndfile1
+
+      - name: Unit tests (no API or renderer required)
+        run: python -m unittest discover -s tests -v
+
+      - name: Preflight director selection
+        env:
+          PROVIDER: ${{ inputs.provider }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ "$PROVIDER" = "gemini" ] && [ -z "$GEMINI_API_KEY" ]; then
+            echo 'Missing GEMINI_API_KEY secret. Configure it in Settings > Secrets and variables > Actions.' >&2
+            exit 1
+          fi
+
+      - name: Generate AI scene plan
+        env:
+          TOPIC: ${{ inputs.topic }}
+          PROVIDER: ${{ inputs.provider }}
+          MODEL: ${{ inputs.model }}
+          SECONDS: ${{ inputs.seconds }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python src/ai_director.py --topic "$TOPIC" --duration "$SECONDS" --provider "$PROVIDER" --model "$MODEL" --out build/video_plan.json
+
+      - name: Install local Kokoro and HyperFrames rendering dependencies
+        if: ${{ inputs.render_video }}
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install kokoro-onnx soundfile
+          npx --yes hyperframes doctor || true
+          npx --yes hyperframes browser ensure
+
+      - name: Compile HyperFrames and render both videos
+        env:
+          VOICE: ${{ inputs.voice }}
+          RENDER_VIDEO: ${{ inputs.render_video }}
+        run: |
+          if [ "$RENDER_VIDEO" = "true" ]; then
+            python src/hyperframes_pipeline.py --plan build/video_plan.json --out-dir build/hyperframes --voice "$VOICE" --tts --render --output build/exports --fps 30
+          else
+            python src/hyperframes_pipeline.py --plan build/video_plan.json --out-dir build/hyperframes
+          fi
+
+      - name: Archive reproducible project and validated exports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AetherRendering-AI-${{ github.run_number }}
+          if-no-files-found: warn
+          retention-days: 90
+          path: |
+            build/video_plan.json
+            build/hyperframes/**
+            build/exports/**

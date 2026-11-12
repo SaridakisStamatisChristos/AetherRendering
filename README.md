@@ -88,3 +88,7 @@ npx hyperframes render -o output.mp4
 ```
 
 For separate aspect ratios, author two compositions and render each with `--composition`; refer to the upstream documentation for the version installed. **Do not claim HyperFrames success unless the CLI actually generates and validates the files.**
+
+## AetherRendering v2: AI scene generation + HyperFrames + Kokoro
+
+See [AI_RENDERING.md](docs/AI_RENDERING.md) for two modes: demo scene generation (no AI key), or Gemini scene generation (requires `GEMINI_API_KEY` GitHub Actions secret). The [AI Video workflow](.github/workflows/ai-reel.yml) builds actual HyperFrames HTML/GSAP compositions, synthesizes local Kokoro voiceover, renders portrait and landscape MP4s, and verifies outputs. **Live HyperFrames rendering and Gemini calls are not certified until the new workflow successfully runs; the preexisting FFmpeg renderer is unchanged.**
