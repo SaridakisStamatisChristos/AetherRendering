@@ -1,4 +1,5 @@
 name: HyperFrames + Kokoro integration smoke test
+# Rerun after adding required GSAP import.
 
 on:
   push:
