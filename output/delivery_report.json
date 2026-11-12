@@ -6,7 +6,7 @@
   "scenes": 9,
   "outputs": [
     {
-      "file": "/mnt/data/aether_video_engine/output/instagram_1080x1920.mp4",
+      "file": "/home/runner/work/AetherRendering/AetherRendering/output/instagram_1080x1920.mp4",
       "duration_sec": 26.8,
       "video_codec": "h264",
       "width": 1080,
@@ -24,7 +24,7 @@
       "passed": true
     },
     {
-      "file": "/mnt/data/aether_video_engine/output/youtube_1920x1080.mp4",
+      "file": "/home/runner/work/AetherRendering/AetherRendering/output/youtube_1920x1080.mp4",
       "duration_sec": 26.8,
       "video_codec": "h264",
       "width": 1920,
