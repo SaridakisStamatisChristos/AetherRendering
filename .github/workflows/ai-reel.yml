@@ -91,6 +91,8 @@ jobs:
             git add -f state/gemini_usage.json
             if ! git diff --cached --quiet; then
               git commit -m 'Record Gemini quota usage [skip ci]'
+              # Preserve concurrent commits made after workflow checkout.
+              git pull --rebase origin main
               git push origin HEAD:main
             fi
           fi
