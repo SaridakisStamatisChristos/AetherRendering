@@ -1,0 +1,50 @@
+name: HyperFrames + Kokoro integration smoke test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ai-render-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng libsndfile1
+          python -m pip install kokoro-onnx soundfile
+          npx --yes hyperframes browser ensure
+      - name: Validate Python and compile HTML/GSAP
+        run: |
+          python -m unittest discover -s tests -v
+          python src/ai_director.py --provider demo --topic "How real video rendering works" --duration 12 --out build/video_plan.json
+          python src/hyperframes_pipeline.py --plan build/video_plan.json --out-dir build/hyperframes
+          cd build/hyperframes/vertical && npx --yes hyperframes lint
+      - name: Generate Kokoro voice and render two videos
+        run: |
+          python src/hyperframes_pipeline.py --plan build/video_plan.json --out-dir build/hyperframes --tts --render --output build/exports
+      - name: Upload results even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: HyperFrames-Kokoro-Smoke-${{ github.run_number }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            build/video_plan.json
+            build/hyperframes/**
+            build/exports/**
