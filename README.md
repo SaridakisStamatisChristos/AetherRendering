@@ -55,6 +55,16 @@ python src/hyperframes_pipeline.py --plan examples/sky_blue_rich_30s.json \
 
 **Verification:** The real 60 fps, two-format render runs in the dedicated `visual-scenes-v1.1.yml` GitHub workflow; see the [visual scenes guide](docs/VISUAL_SCENES_V1_1.md). The dedicated real render [passed in GitHub Actions](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/runs/43413982958): 30 Python tests; two 29.83-second exports at 60 fps with real Kokoro narration, AAC audio and full decoding. [Download portrait MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/visual-scenes-v1.1/samples/sky-blue-rich/portrait-60fps.mp4) or [landscape MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/visual-scenes-v1.1/samples/sky-blue-rich/landscape-60fps.mp4). Artistic review is still required; stable `main` is unchanged.
 
+## v1.3 — Cinematic science animation preview (verified)
+
+The v1.3 experimental branch improves *visual storytelling*, not just video frame rate. New narrative diagrams illustrate blue photons reaching human eyes from multiple directions (`sky_dome`) and qualitative color perception (`perception`), replacing the earlier globe and ungrounded bar-chart metaphors. The 15 micro-beat transitions, other 5 scene templates, Kokoro narration and validated JSON contracts remain intact.
+
+**Download actual results:** [portrait MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/cinematic-visuals-v1.3/samples/sky-blue-cinematic/portrait-60fps.mp4) · [landscape MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/cinematic-visuals-v1.3/samples/sky-blue-cinematic/landscape-60fps.mp4) · [portrait contact sheet](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/cinematic-visuals-v1.3/samples/sky-blue-cinematic/contact_sheet.png) · [landscape contact sheet](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/cinematic-visuals-v1.3/samples/sky-blue-cinematic/contact_sheet_landscape.png).
+
+Verified in GitHub: **42 passing Python tests**, two genuine **29.83-second, 60 fps** videos, readable AAC narration (−22.7 dB mean), full video decoding, and **30 actual sampled frames** across portrait/landscape with a motion-change gate passed in all 5 scenes. The landscape layout was corrected after reviewing real frames to avoid illustration/beat overlay overlap.
+
+[Full technical guide](docs/CINEMATIC_VISUALS_V1_3.md) and [successful published-artifact recovery verification](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/runs/43425796777). Main is unchanged pending the user's artistic review.
+
 ## v1.2 development — kinetic storytelling inside every shot
 
 On the experimental `feature/kinetic-storytelling-v1.2` branch, a scene can now contain **2–4 validated micro-beat labels**. Instead of leaving an illustration in place for five to seven seconds, the video reveals successive short explanations with separate entrance, hold/progress and exit animations. Vector diagrams continue moving through the later part of a scene, and short fades separate shots.
