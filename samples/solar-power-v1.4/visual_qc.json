@@ -17,8 +17,8 @@
         6.346
       ],
       "mean_rgb_deltas": [
-        1.477,
-        1.614
+        1.565,
+        1.682
       ],
       "motion_gate_pass": true
     },
@@ -32,8 +32,8 @@
         14.116
       ],
       "mean_rgb_deltas": [
-        4.321,
-        4.79
+        4.454,
+        5.077
       ],
       "motion_gate_pass": true
     },
@@ -47,8 +47,8 @@
         20.3
       ],
       "mean_rgb_deltas": [
-        3.368,
-        3.728
+        3.862,
+        4.646
       ],
       "motion_gate_pass": true
     },
@@ -62,8 +62,8 @@
         25.888
       ],
       "mean_rgb_deltas": [
-        2.605,
-        3.258
+        2.931,
+        3.189
       ],
       "motion_gate_pass": true
     },
@@ -77,8 +77,8 @@
         31.741
       ],
       "mean_rgb_deltas": [
-        3.629,
-        3.352
+        4.049,
+        3.727
       ],
       "motion_gate_pass": true
     }
