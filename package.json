@@ -1,0 +1,16 @@
+{
+  "name": "aetherrendering",
+  "version": "1.0.0-rc.1",
+  "private": true,
+  "description": "Pinned local rendering and timeline packages for AetherRendering",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "verify:packages": "hyperframes doctor"
+  },
+  "dependencies": {
+    "gsap": "3.14.2",
+    "hyperframes": "0.9.37"
+  }
+}

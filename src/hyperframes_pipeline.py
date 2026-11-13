@@ -18,6 +18,27 @@ import sys
 
 from ai_director import validate_plan
 
+ROOT = Path(__file__).resolve().parents[1]
+HYPERFRAMES_BIN = ROOT / 'node_modules' / '.bin' / 'hyperframes'
+GSAP_BUNDLE = ROOT / 'node_modules' / 'gsap' / 'dist' / 'gsap.min.js'
+
+
+def hyperframes_cli():
+    if not HYPERFRAMES_BIN.is_file():
+        raise RuntimeError('Pinned HyperFrames is missing: run npm ci in the repository root')
+    return str(HYPERFRAMES_BIN)
+
+
+def bundle_gsap(project):
+    """Copy licensed GSAP from the pinned local npm dependency; never fetch a CDN."""
+    if not GSAP_BUNDLE.is_file():
+        raise RuntimeError('Local GSAP is missing: run npm ci in the repository root')
+    target = Path(project) / 'assets' / 'vendor' / 'gsap.min.js'
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(GSAP_BUNDLE, target)
+    return target
+
+
 FORMATS = {'vertical': (1080, 1920), 'horizontal': (1920, 1080)}
 
 
@@ -43,13 +64,12 @@ def prepare_audio(plan, assets, voice='af_heart', generate=False):
         return [(None, float(s['duration'])) for s in plan['scenes']]
     if not re.fullmatch(r'[a-z]{2}_[a-z0-9]+', voice):
         raise ValueError('Invalid Kokoro voice ID')
-    if not shutil.which('npx'):
-        raise RuntimeError('Node.js/npx 22+ is required to synthesize Kokoro speech')
+    cli = hyperframes_cli()
     assets.mkdir(parents=True, exist_ok=True)
     for i, s in enumerate(plan['scenes']):
         path = assets / f'{i:03d}.wav'
         # Use the installed HyperFrames CLI, which performs local Kokoro TTS.
-        command(['npx', '--yes', 'hyperframes', 'tts', s['narration'],
+        command([cli, 'tts', s['narration'],
                  '--voice', voice, '--output', str(path)], capture=False)
         seconds = wav_duration(path)
         # Avoid clipping or abrupt cuts; narration determines shot timing.
@@ -114,7 +134,7 @@ footer{{font-size:23px;letter-spacing:2px;text-transform:uppercase;display:flex;
 {''.join(sections)}
 {''.join(audios)}
 </div>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="assets/vendor/gsap.min.js"></script>
 <script>window.__timelines=window.__timelines||{{}};
 const tl=gsap.timeline({{paused:true}});
 {''.join(animation)}
@@ -133,6 +153,9 @@ def write_project(plan, destination, with_voice=False, voice='af_heart'):
         dirpath = destination / name
         dirpath.mkdir(parents=True, exist_ok=True)
         (dirpath / 'index.html').write_text(build_html(plan, name, voices), encoding='utf-8')
+        # Compilation-only unit tests may run before npm ci; a real render requires this local file.
+        if GSAP_BUNDLE.is_file():
+            bundle_gsap(dirpath)
         if with_voice:
             target = dirpath / 'assets' / 'voice'
             target.mkdir(parents=True, exist_ok=True)
@@ -155,12 +178,27 @@ def verify_video(path, w, h):
                      'stream=codec_name,width,height,codec_type:format=duration', '-of', 'json', str(path)])
     result = json.loads(probe.stdout)
     videos = [x for x in result['streams'] if x['codec_type'] == 'video']
+    audios = [x for x in result['streams'] if x['codec_type'] == 'audio']
+    if not audios:
+        raise RuntimeError(f'Missing narration audio stream: {path}')
+    if audios[0].get('codec_name') not in ('aac', 'opus', 'mp3', 'pcm_s16le'):
+        raise RuntimeError(f'Unexpected audio codec: {path}')
+    duration = float(result['format']['duration'])
+    if not math.isfinite(duration) or duration <= 0:
+        raise RuntimeError(f'Invalid video duration: {path}')
     if not videos or videos[0]['width'] != w or videos[0]['height'] != h:
         raise RuntimeError(f'Wrong video dimensions: {path}')
     if videos[0]['codec_name'] != 'h264':
         raise RuntimeError(f'Wrong video codec: {path}')
     command(['ffmpeg', '-v', 'error', '-xerror', '-i', str(path), '-f', 'null', '-'])
-    return {'path': str(path), 'size': path.stat().st_size, 'duration': float(result['format']['duration']), 'full_decode': True}
+    level = command(['ffmpeg', '-hide_banner', '-nostats', '-i', str(path),
+                     '-map', '0:a:0', '-vn', '-af', 'volumedetect', '-f', 'null', '-'])
+    match = re.search(r'mean_volume:\s*(-?\d+(?:\.\d+)?)\s*dB', level.stderr)
+    if not match or float(match.group(1)) < -58.0:
+        raise RuntimeError(f'Narration audio is silent or below audibility threshold: {path}')
+    return {'path': str(path), 'size': path.stat().st_size, 'duration': duration,
+            'full_decode': True, 'audio_verified': True,
+            'audio_codec': audios[0]['codec_name'], 'mean_volume_db': float(match.group(1))}
 
 
 def main():
@@ -181,13 +219,16 @@ def main():
     out = write_project(plan, args.out_dir, args.tts, args.voice)
     print('HyperFrames compositions created:', out)
     if args.render:
+        cli = hyperframes_cli()
+        for fmt in FORMATS:
+            bundle_gsap(out / fmt)
         exports = Path(args.output)
         exports.mkdir(parents=True, exist_ok=True)
         report = {'engine': 'hyperframes', 'voice_engine': 'kokoro-local', 'outputs': []}
         for fmt, (w, h) in FORMATS.items():
             mp4 = (exports / f'{fmt}.mp4').resolve()
-            command(['npx', '--yes', 'hyperframes', 'lint'], cwd=out / fmt, capture=False)
-            command(['npx', '--yes', 'hyperframes', 'render', '--output', str(mp4), '--fps', str(args.fps)], cwd=out / fmt, capture=False)
+            command([cli, 'lint'], cwd=out / fmt, capture=False)
+            command([cli, 'render', '--output', str(mp4), '--fps', str(args.fps)], cwd=out / fmt, capture=False)
             report['outputs'].append(verify_video(mp4, w, h))
         (exports / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
         print('VERIFIED two HyperFrames videos:', [x['path'] for x in report['outputs']])

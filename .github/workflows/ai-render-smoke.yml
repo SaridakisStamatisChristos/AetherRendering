@@ -3,9 +3,12 @@ name: HyperFrames + Kokoro integration smoke test
 
 on:
   push:
-    branches: [main]
+    branches: [main, "feature/production-stabilization-v1"]
     paths:
       - ".github/workflows/ai-render-smoke.yml"
+      - "src/hyperframes_pipeline.py"
+      - "tests/**"
+      - "package.json"
   workflow_dispatch:
 
 permissions:
@@ -27,14 +30,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg espeak-ng libsndfile1
-          python -m pip install kokoro-onnx soundfile
-          npx --yes hyperframes browser ensure
+          npm install --no-audit --no-fund
+          node_modules/.bin/hyperframes browser ensure
       - name: Validate Python and compile HTML/GSAP
         run: |
           python -m unittest discover -s tests -v
           python src/ai_director.py --provider demo --topic "How real video rendering works" --duration 12 --out build/video_plan.json
           python src/hyperframes_pipeline.py --plan build/video_plan.json --out-dir build/hyperframes
-          cd build/hyperframes/vertical && npx --yes hyperframes lint
+          cd build/hyperframes/vertical && "$GITHUB_WORKSPACE/node_modules/.bin/hyperframes" lint
       - name: Generate Kokoro voice and render two videos
         run: |
           python src/hyperframes_pipeline.py --plan build/video_plan.json --out-dir build/hyperframes --tts --render --output build/exports
@@ -51,7 +54,7 @@ jobs:
             build/exports/**
 
       - name: Preserve verified demo MP4s in repository
-        if: success()
+        if: ${{ success() && github.ref == 'refs/heads/main' }}
         run: |
           mkdir -p output/hyperframes_v2
           cp build/exports/vertical.mp4 output/hyperframes_v2/instagram.mp4
