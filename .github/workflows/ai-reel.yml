@@ -99,7 +99,8 @@ jobs:
       - name: Install Kokoro and rendering dependencies
         if: ${{ inputs.render_video }}
         run: |
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund
+          python -m pip install kokoro-onnx soundfile
           node_modules/.bin/hyperframes browser ensure
       - name: Compile and render
         env:
