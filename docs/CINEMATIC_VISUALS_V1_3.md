@@ -11,7 +11,7 @@ This development branch follows the successfully verified v1.2 kinetic-storytell
 
 ## Visual quality gate
 
-Real render is sampled at 17%, 51%, and 83% of each scene (15 samples). A contact sheet is generated from decoded video frames, and per-scene average RGB frame differences are measured. The gate fails if any scene appears nearly static at all sample positions.
+Both portrait and landscape videos are sampled at 17%, 51%, and 83% of each scene (30 samples total). A contact sheet is generated from decoded video frames, and per-scene average RGB frame differences are measured. The gate fails if any scene appears nearly static at all sample positions.
 
 This motion gate does not replace manual aesthetic review; it establishes *measured temporal visual changes*. Full MP4 decoding, frame rate, resolution and genuine Kokoro/AAC audibility are still checked.
 
@@ -35,3 +35,7 @@ python src/visual_qc.py \
 The dedicated GitHub workflow `.github/workflows/cinematic-visuals-v1.3.yml` executes this on a real runner and saves the new videos and contact sheet under `samples/sky-blue-cinematic/` only after all gates pass.
 
 Live Gemini generation, word-level transcription, lip-sync, arbitrary imported footage and AetherMotion integration remain separate future work.
+
+## Layout correction from real frame review
+
+Inspection of the rendered 16:9 video revealed that the v1.3 story-beat strip overlapped part of the illustration. The subsequent layout revision moves the landscape illustration upward and seats the story strip below it. Portrait sizing remains unchanged. Both orientations now generate independent contact sheets and per-scene visual motion measurements so this class of issue can be reviewed explicitly.

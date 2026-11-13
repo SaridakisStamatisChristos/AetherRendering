@@ -85,6 +85,9 @@ jobs:
           python src/visual_qc.py --video build/cinematic/exports/vertical.mp4 \
             --resolved-plan build/cinematic/hyperframes/resolved_plan.json \
             --output build/cinematic/visual_qc
+          python src/visual_qc.py --video build/cinematic/exports/horizontal.mp4 \
+            --resolved-plan build/cinematic/hyperframes/resolved_plan.json \
+            --output build/cinematic/visual_qc_landscape
           python - <<'PY'
           import json
           from pathlib import Path
@@ -92,7 +95,11 @@ jobs:
           assert data['all_scenes_change'] is True, data
           assert data['sampled_frames']==15, data
           assert Path('build/cinematic/visual_qc/contact_sheet.png').is_file()
-          print("VERIFIED:",data['sampled_frames'],"real video frames sampled; all five scenes show visible changes")
+          land=json.loads(Path('build/cinematic/visual_qc_landscape/visual_qc.json').read_text())
+          assert land['all_scenes_change'] is True, land
+          assert land['sampled_frames']==15, land
+          assert Path('build/cinematic/visual_qc_landscape/contact_sheet.png').is_file()
+          print("VERIFIED:",data['sampled_frames']+land['sampled_frames'],"real video frames sampled across both formats; all scenes change")
           PY
       - name: Upload full output and logs
         if: always()
@@ -107,6 +114,7 @@ jobs:
             build/cinematic/exports/*.mp4
             build/cinematic/exports/report.json
             build/cinematic/visual_qc/**
+            build/cinematic/visual_qc_landscape/**
       - name: Preserve checked real MP4s on feature branch
         if: success() && github.ref == 'refs/heads/feature/cinematic-visuals-v1.3'
         run: |
@@ -117,6 +125,8 @@ jobs:
           cp build/cinematic/hyperframes/resolved_plan.json samples/sky-blue-cinematic/resolved_plan.json
           cp build/cinematic/visual_qc/contact_sheet.png samples/sky-blue-cinematic/contact_sheet.png
           cp build/cinematic/visual_qc/visual_qc.json samples/sky-blue-cinematic/visual_qc.json
+          cp build/cinematic/visual_qc_landscape/contact_sheet.png samples/sky-blue-cinematic/contact_sheet_landscape.png
+          cp build/cinematic/visual_qc_landscape/visual_qc.json samples/sky-blue-cinematic/visual_qc_landscape.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add samples/sky-blue-cinematic

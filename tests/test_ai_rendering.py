@@ -289,5 +289,23 @@ class CinematicScenesTests(unittest.TestCase):
         self.assertIn('sky_dome', VISUAL_TYPES)
         self.assertIn('perception', VISUAL_TYPES)
 
+
+class LandscapeLayoutTests(unittest.TestCase):
+    def test_landscape_art_and_beat_strip_are_separated(self):
+        p=demo_plan('No occlusion',15)
+        p['scenes'][0]['visual']={'type':'sky_dome'}
+        p['scenes'][0]['beats']=['Understand blue light','Observe the sky']
+        validate_plan(p)
+        page=build_html(p,'horizontal',[(None,5.0)]*3,fps=60)
+        self.assertIn('top:65px;height:575px',page)
+        self.assertIn('top:685px;height:90px',page)
+        self.assertIn('beat-0-1',page)
+        self.assertIn('data-fps="60"',page)
+    def test_portrait_position_is_preserved(self):
+        p=demo_plan('Portrait baseline',15)
+        page=build_html(p,'vertical',[(None,5.0)]*3)
+        self.assertIn('top:345px;height:850px',page)
+        self.assertIn('top:1240px;height:145px',page)
+
 if __name__ == '__main__':
     unittest.main()

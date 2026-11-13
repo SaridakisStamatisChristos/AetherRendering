@@ -146,7 +146,7 @@ footer{{font-size:23px;letter-spacing:2px;text-transform:uppercase;display:flex;
 .progress{{position:absolute;bottom:0;left:0;height:12px;width:100%;background:{plan.get('accent','#4CE0C1')};transform-origin:left center}}
 /* Rich scenes retain the original JSON/text pipeline while dedicating
    substantially more screen area and keyframed motion to illustrations. */
-.scene.rich .visual-stage{{position:absolute;left:{65 if vertical else 165}px;right:{65 if vertical else 165}px;top:{345 if vertical else 145}px;height:{850 if vertical else 615}px;pointer-events:none;z-index:1}}
+.scene.rich .visual-stage{{position:absolute;left:{65 if vertical else 165}px;right:{65 if vertical else 165}px;top:{345 if vertical else 65}px;height:{850 if vertical else 575}px;pointer-events:none;z-index:1}}
 .scene.rich .visual-stage svg{{display:block;width:100%;height:100%;overflow:visible}}
 .scene.rich .decor{{opacity:.10}}
 .scene.rich .story{{position:absolute;left:{95 if vertical else 165}px;right:{95 if vertical else 165}px;bottom:{280 if vertical else 145}px;margin:0;max-width:none}}
@@ -156,7 +156,7 @@ footer{{font-size:23px;letter-spacing:2px;text-transform:uppercase;display:flex;
 .scene.rich footer{{margin-top:auto}}
 /* Beat strips appear only for new storyboards that explicitly request them.
    Each phrase has its own seekable GSAP enter/hold/exit timeline. */
-.beat-stage{{position:absolute;z-index:5;left:{100 if vertical else 170}px;right:{100 if vertical else 170}px;top:{1240 if vertical else 640}px;height:{145 if vertical else 100}px;pointer-events:none}}
+.beat-stage{{position:absolute;z-index:5;left:{100 if vertical else 170}px;right:{100 if vertical else 170}px;top:{1240 if vertical else 685}px;height:{145 if vertical else 90}px;pointer-events:none}}
 .beat-card{{position:absolute;inset:0;padding:{20 if vertical else 11}px {30 if vertical else 24}px;background:rgba(8,20,40,.92);border:2px solid rgba(107,206,246,.53);border-radius:20px;box-shadow:0 22px 55px rgba(0,0,0,.22);color:#F2F9FF;display:flex;align-items:center;gap:25px;opacity:0;visibility:hidden}}
 .beat-number{{flex:none;font-size:{25 if vertical else 22}px;font-weight:800;color:#6BD9FF;letter-spacing:2px}}
 .beat-line{{font-size:{39 if vertical else 31}px;font-weight:800;line-height:1.1;letter-spacing:.2px;overflow-wrap:anywhere}}
