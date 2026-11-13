@@ -27,6 +27,34 @@ AetherRendering produces short, narrated videos in **Instagram/Reels portrait (1
 
 The current aesthetic uses **animated typography and simple motion graphics**. Do not confuse it with an autonomous, fully cinematic video-editing system. AI-created content still requires factual and editorial review.
 
+## Development preview — richer animation scenes (v1.1)
+
+A separate development branch, `feature/visual-scenes-v1.1`, adds five reusable, purely local SVG/GSAP animation templates: `spectrum` (light and color), `particles` (molecules and scattered beams), `orbit` (layered circular motion), `comparison` (animated bars), and `horizon` (animated atmospheric scenery). These illustrations are generated from validated JSON, without external images or video models. They use multiple seekable GSAP events per scene and a subtle camera movement; legacy scenes remain unchanged.
+
+Add an optional visual selection to an existing scene:
+
+```json
+"visual": {"type": "particles"}
+```
+
+For comparison charts:
+
+```json
+"visual": {"type": "comparison", "labels": ["A", "B", "C"], "values": [0.4, 0.8, 0.6]}
+```
+
+The values above are illustrative, not research data. For an actual comparison use meaningful, verified normalized measurements and label them clearly.
+
+The original 30-second sky-blue script has an enhanced counterpart at `examples/sky_blue_rich_30s.json`. To render it after the usual installation:
+
+```bash
+python src/hyperframes_pipeline.py --plan examples/sky_blue_rich_30s.json \
+  --out-dir build/rich/hyperframes --tts --render --fps 60 \
+  --output build/rich/exports
+```
+
+**Verification:** The real 60 fps, two-format render runs in the dedicated `visual-scenes-v1.1.yml` GitHub workflow; see the [visual scenes guide](docs/VISUAL_SCENES_V1_1.md). This is a development preview until that workflow passes and the resulting video is visually reviewed. The stable `main` branch is unchanged.
+
 ## How the system works
 
 ```text
