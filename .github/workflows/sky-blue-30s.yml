@@ -1,0 +1,99 @@
+name: 30-second sky-blue demonstration
+on:
+  push:
+    branches:
+      - feature/sky-blue-30s-demo
+    paths:
+      - examples/sky_blue_30s.json
+      - .github/workflows/sky-blue-30s.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned renderer and Kokoro backend
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng libsndfile1
+          npm ci --no-audit --no-fund
+          python -m pip install -r requirements-tts.txt
+          echo "HYPERFRAMES_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+          node_modules/.bin/hyperframes browser ensure
+      - name: Validate original 30-second storyboard
+        run: |
+          python - <<'PY'
+          import json,sys
+          sys.path.insert(0,'src')
+          from ai_director import validate_plan
+          with open('examples/sky_blue_30s.json', encoding='utf-8') as f:
+              plan=validate_plan(json.load(f))
+          assert len(plan['scenes']) == 5
+          assert sum(s['duration'] for s in plan['scenes']) == 30
+          print('Planned 30s,',len(plan['scenes']),'scenes,',sum(len(s['narration'].split()) for s in plan['scenes']),'spoken words')
+          PY
+          python -m unittest discover -s tests -v
+      - name: Genuine Kokoro speech and two HyperFrames MP4s
+        run: |
+          python src/hyperframes_pipeline.py \
+            --plan examples/sky_blue_30s.json \
+            --out-dir build/sky_blue_30s/hyperframes \
+            --voice af_heart --tts --render \
+            --output build/sky_blue_30s/exports --fps 30
+      - name: Verify duration, speech and output quality
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          folder=Path('build/sky_blue_30s/exports')
+          report=json.loads((folder/'report.json').read_text())
+          assert len(report['outputs'])==2,report
+          for fmt in ('vertical','horizontal'):
+              p=folder/f'{fmt}.mp4'
+              assert p.stat().st_size > 100000, p
+              item=next((x for x in report['outputs'] if Path(x['path']).name==p.name), None)
+              assert item is not None and item['full_decode'] and item['audio_verified'],item
+              assert item['audio_codec']=='aac',item
+              assert -58 < item['mean_volume_db'] < 0,item
+              assert 25 <= item['duration'] <= 36, f"30s target outside 25–36s range: {item['duration']}"
+              print(f"Verified {fmt}: {item['duration']:.2f} seconds, AAC audio mean {item['mean_volume_db']} dB, {p.stat().st_size} bytes")
+          PY
+      - name: Upload rendered videos as GitHub Actions artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AetherRendering-sky-blue-30s
+          retention-days: 90
+          if-no-files-found: warn
+          path: |
+            examples/sky_blue_30s.json
+            build/sky_blue_30s/hyperframes/resolved_plan.json
+            build/sky_blue_30s/exports/*.mp4
+            build/sky_blue_30s/exports/report.json
+      - name: Preserve verified MP4 files on demo feature branch
+        if: success() && github.ref == 'refs/heads/feature/sky-blue-30s-demo'
+        run: |
+          mkdir -p samples/sky-blue-30s
+          cp build/sky_blue_30s/exports/vertical.mp4 samples/sky-blue-30s/portrait.mp4
+          cp build/sky_blue_30s/exports/horizontal.mp4 samples/sky-blue-30s/landscape.mp4
+          cp build/sky_blue_30s/exports/report.json samples/sky-blue-30s/verification.json
+          cp build/sky_blue_30s/hyperframes/resolved_plan.json samples/sky-blue-30s/resolved_plan.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add samples/sky-blue-30s
+          if ! git diff --cached --quiet; then
+            git commit -m 'demo: preserve real narrated 30-second sky blue video [skip ci]'
+            git pull --rebase origin feature/sky-blue-30s-demo
+            git push origin HEAD:feature/sky-blue-30s-demo
+          fi
