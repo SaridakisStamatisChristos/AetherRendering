@@ -48,3 +48,7 @@ Dedicated CI: `.github/workflows/kinematic-actions-v1.5.yml`, including strict v
 ## Meaningful limitations
 
 The elbow and knee positions are solved exactly **at authored key poses**. GSAP interpolates between them; this is not a continuously constrained rig with exact limb lengths between every frame. Walking is stylized and does not implement physically planted feet. Hand-object contact is geometrically aligned for selected behaviors, not general physics collision or arbitrary object grasping. Each scene has an independent illustrative pose rather than persistent physical world state across cuts. No 3D, real lip-sync, source AI video model, or third-party assets are required. Automated image-change checks do not guarantee artistic quality.
+
+## First live-run feedback and repair
+
+The original short sample had 66 words and Kokoro completed it in **23.22 seconds**. The audio/video itself decoded successfully, but the duration test correctly rejected it as too short for the intended 30-second class. The example narration has been revised to 86 words; the result still requires an actual duration measurement. The HyperFrames lint also warned that repeated GSAP `fromTo` tweens can apply later `from` values before earlier keyframes are played. Kinematic movements now use `immediateRender:false` and regression tests to preserve frame-accurate initial poses.

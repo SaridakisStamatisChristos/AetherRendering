@@ -7,7 +7,7 @@ The character is procedural 2D; this is not motion capture or 3D skeletal riggin
 import json
 import math
 
-from action_scenes import PROPS, CAMERAS, _base, _character, _prop, _camera, _tween
+from action_scenes import PROPS, CAMERAS, _base, _character, _prop, _camera
 
 KINEMATIC_TYPES = frozenset({"kinematic_stage"})
 BEHAVIORS = frozenset({"walk_to", "pick_up", "inspect", "set_down", "operate"})
@@ -25,6 +25,14 @@ HAND_INSPECT = (470.0, 249.0)
 PROP_HOME = (570, 345)
 PROP_LIFT = (-40, -75)
 PROP_INSPECT = (-65, -84)
+
+
+def _tween(selector, source, dest, start):
+    """Prevent later GSAP fromTo's from-values changing earlier timeline frames."""
+    if not dest.startswith("{") or not dest.endswith("}"):
+        raise ValueError("Malformed authored tween")
+    end = dest[:-1] + ",immediateRender:false}"
+    return f"tl.fromTo('#{selector}',{source},{end},{start:.3f});"
 
 
 def validate_kinematic(config, index):
@@ -73,7 +81,7 @@ def _attr(selector, initial, final, t, duration, ease="sine.inOut"):
         raise ValueError("Nonpositive tween duration")
     s = json.dumps({"attr": initial}, separators=(",", ":"))
     e = json.dumps({"attr": final, "duration": round(duration, 3),
-                    "ease": ease}, separators=(",", ":"))
+                    "ease": ease, "immediateRender": False}, separators=(",", ":"))
     return f"tl.fromTo('#{selector}',{s},{e},{t:.3f});"
 
 

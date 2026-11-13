@@ -514,5 +514,30 @@ class InverseKinematicsTests(unittest.TestCase):
             self.assertIn('id="beat-0-2"',page)
             self.assertNotIn('cdn.jsdelivr.net',page)
 
+class TimelineInitializationTests(unittest.TestCase):
+    def test_later_keyframes_do_not_eagerly_override_earlier_poses(self):
+        from kinematic_actions import render_kinematic
+        for behavior in ('walk_to','pick_up','inspect','set_down','operate'):
+            with self.subTest(behavior=behavior):
+                _, script=render_kinematic(
+                    {'type':'kinematic_stage','prop':'battery','behavior':behavior},
+                    0,0.,6.)
+                # .fromTo on a reused target must opt out of GSAP's eager
+                # immediateRender to preserve the original seekable baseline.
+                self.assertEqual(script.count('tl.fromTo('),
+                                 script.count('immediateRender'),
+                                 script[:1600])
+
+    def test_demonstration_has_speech_length_suitable_for_30s_target(self):
+        from pathlib import Path
+        import json
+        plan=json.loads((Path(__file__).resolve().parents[1] /
+                         'examples/lamp_repair_ik_30s.json').read_text())
+        words=sum(len(s['narration'].split()) for s in plan['scenes'])
+        self.assertGreaterEqual(words,85)
+        self.assertLessEqual(words,95)
+        validate_plan(plan)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -5,7 +5,7 @@
     {
       "title": "THE LAMP GOES DARK",
       "subtitle": "Find the power source.",
-      "narration": "The desk lamp goes dark. A technician walks over to check its power source.",
+      "narration": "The desk lamp suddenly goes dark. A technician walks over to check its power source before starting repairs.",
       "duration": 6,
       "motion": "rise",
       "visual": {
@@ -23,7 +23,7 @@
     {
       "title": "LIFT THE BATTERY",
       "subtitle": "A careful, controlled pickup.",
-      "narration": "She reaches for the battery and carefully lifts it from the worktable.",
+      "narration": "She reaches across the worktable for the battery and carefully lifts it while keeping the equipment steady.",
       "duration": 6,
       "motion": "slide",
       "visual": {
@@ -41,7 +41,7 @@
     {
       "title": "LOOK FOR DAMAGE",
       "subtitle": "A closer inspection.",
-      "narration": "Holding it close, she checks the contacts for damage and signs of corrosion.",
+      "narration": "Holding it close, she checks both electrical contacts for scratches, loose connections, or signs of corrosion.",
       "duration": 6,
       "motion": "zoom",
       "visual": {
@@ -59,7 +59,7 @@
     {
       "title": "SET IT DOWN",
       "subtitle": "Controlled placement on the table.",
-      "narration": "She lowers the battery onto the table beside the lamp, ready for testing.",
+      "narration": "Next she slowly lowers the battery onto the worktable beside the lamp, preparing for a controlled test.",
       "duration": 6,
       "motion": "pop",
       "visual": {
@@ -77,7 +77,7 @@
     {
       "title": "LIGHT RETURNS",
       "subtitle": "Verify that electricity is flowing.",
-      "narration": "Finally, she tests the lamp. A bright glow signals that electricity is flowing again.",
+      "narration": "Finally, she reconnects and tests the lamp. A bright glow confirms electricity is flowing through the circuit again.",
       "duration": 6,
       "motion": "rotate",
       "visual": {

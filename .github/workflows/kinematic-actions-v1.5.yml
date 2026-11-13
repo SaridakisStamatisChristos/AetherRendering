@@ -55,6 +55,7 @@ jobs:
           assert len(p['scenes'])==5
           assert [s['visual']['type'] for s in p['scenes']] == ['kinematic_stage'] * 5
           assert [s['visual']['behavior'] for s in p['scenes']] == ['walk_to','pick_up','inspect','set_down','operate']
+          assert 85 <= sum(len(s['narration'].split()) for s in p['scenes']) <= 95
           assert all(len(s.get('beats',[]))==3 for s in p['scenes'])
           assert [s['visual'].get('camera') for s in p['scenes']] == ['pan_right','push_in','detail','pan_left','wide']
           print('VALIDATED:',len(p['scenes']),'animated scenes and',sum(len(s['beats']) for s in p['scenes']),'story beats, 5 camera views.')
@@ -77,7 +78,7 @@ jobs:
               p=Path('build/kinematic15/exports') / (fmt+'.mp4')
               item=next(x for x in report['outputs'] if Path(x['path']).name==p.name)
               assert item['audio_verified'] is True and item['full_decode'] is True,item
-              assert 24 <= item['duration'] <= 39,item
+              assert 26 <= item['duration'] <= 39,item
               assert item['mean_volume_db'] > -58,item
               v=json.loads(subprocess.check_output(['ffprobe','-v','error','-select_streams','v:0',
                  '-show_entries','stream=avg_frame_rate,nb_frames,width,height','-of','json',str(p)]))['streams'][0]
