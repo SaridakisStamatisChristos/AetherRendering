@@ -13,8 +13,9 @@ import re
 import sys
 from gemini_router import route_plan, discover_models, RouterError
 from visual_scenes import VISUAL_TYPES
+from kinetic_storytelling import validate_beats
 
-SCENE_KEYS = {'title', 'subtitle', 'narration', 'duration', 'motion', 'visual'}
+SCENE_KEYS = {'title', 'subtitle', 'narration', 'duration', 'motion', 'visual', 'beats'}
 MOTIONS = {'rise', 'slide', 'zoom', 'rotate', 'pop'}
 
 
@@ -42,6 +43,7 @@ def validate_plan(plan):
         if scene.get('motion', 'rise') not in MOTIONS:
             raise ValueError(f'Scene {i}: unknown motion preset')
         # Backwards compatible: old storyboards omit 'visual' entirely.
+        validate_beats(scene.get('beats'), i)
         visual = scene.get('visual')
         if visual is not None:
             if not isinstance(visual, dict) or visual.get('type') not in VISUAL_TYPES:
@@ -94,7 +96,9 @@ def gemini_prompt(topic, duration):
             f'Target approximately {duration} seconds split into {n} scenes. '
             'Return ONLY JSON: {"topic":str,"accent":"#4CE0C1","scenes":'
             '[{"title":str,"subtitle":str,"narration":str,"duration":number,'
-            '"motion":str,"visual":{"type":str}}]}. '
+            '"motion":str,"visual":{"type":str},"beats":[str,str,str]}]}. '
+            'Add 2 or 3 concise visual beat labels per scene, each 2–8 words. '
+            'Beat labels must explain successive stages of the visual and be factually accurate. '
             'For visuals, choose an optional object type from spectrum,particles,orbit,comparison,horizon. '
             'Use each only when it helps explain the content; varied visual styles are preferred. '
             'For comparison only, optional equal-length arrays labels (2-4 short strings) and values (0-1 numbers) are supported. '

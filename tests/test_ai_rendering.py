@@ -190,5 +190,69 @@ class VisualSceneTests(unittest.TestCase):
         self.assertIn('&lt;script&gt;',doc)
         self.assertNotIn('<script>alert(1)</script>',doc)
 
+
+class KineticStorytellingTests(unittest.TestCase):
+    def test_three_beats_are_timed_relative_to_measured_audio(self):
+        from kinetic_storytelling import compile_beats
+        scene={'beats':['White light arrives','Colors separate','Blue scatters outward']}
+        structure,commands=compile_beats(scene,2,7.5,6.4)
+        self.assertIn('beat-2-0',structure)
+        self.assertIn('beat-2-2',structure)
+        self.assertNotIn('beat-2-3',structure)
+        self.assertIn("'#beat-2-1'",commands)
+        self.assertIn('tl.to(',commands)
+        self.assertEqual(commands.count('tl.fromTo('),6)
+        self.assertEqual(commands.count('tl.to('),3)
+
+    def test_optional_beats_preserve_old_rendering(self):
+        plan=demo_plan('Classic source',15)
+        doc=build_html(plan,'vertical',[(None,5.0)]*3)
+        self.assertNotIn('beat-stage',doc.split('<body>')[1])
+        self.assertNotIn('id="scene-veil-',doc)
+
+    def test_full_sky_plan_has_independent_explanatory_beats(self):
+        plan=demo_plan('Kinetic demo',25)
+        visual_types=['spectrum','particles','orbit','comparison','horizon']
+        for i,scene in enumerate(plan['scenes']):
+            scene['visual']={'type':visual_types[i]}
+            scene['beats']=['Step one','Step two','The result']
+        validate_plan(plan)
+        doc=build_html(plan,'vertical',[(None,5)]*5,fps=60)
+        self.assertEqual(doc.count('class="beat-card"'),15)
+        self.assertEqual(doc.count('class="scene-veil"'),5)
+        self.assertIn("tl.to('#v-1-particle-20'",doc)
+        self.assertIn("tl.to('#v-0-ray-5'",doc)
+        self.assertIn("tl.to('#v-2-dot-4'",doc)
+        self.assertIn("tl.to('#v-4-sun'",doc)
+        self.assertIn('data-fps="60"',doc)
+
+    def test_escapes_text_and_rejects_html_attributes(self):
+        plan=demo_plan('Escape', 15)
+        plan['scenes'][0]['beats']=['<script>alert(1)</script>', 'Keep & verify']
+        validate_plan(plan)
+        doc=build_html(plan,'vertical',[(None,5)]*3)
+        self.assertIn('&lt;script&gt;alert(1)&lt;/script&gt;',doc)
+        self.assertIn('Keep &amp; verify',doc)
+        self.assertNotIn('<script>alert(1)</script>',doc)
+
+    def test_reject_malformed_beats(self):
+        bad=[['one'],['1','2','3','4','5'],['valid', ''],['valid', 'x'*67],
+             ['valid', 7],['valid', '\\ncontrol']]
+        for beats in bad:
+            with self.subTest(beats=beats):
+                plan=demo_plan('Invalid', 15)
+                plan['scenes'][0]['beats']=beats
+                with self.assertRaisesRegex(ValueError, 'beat'):
+                    validate_plan(plan)
+
+    def test_beats_span_actual_voice_length(self):
+        from kinetic_storytelling import compile_beats
+        scene={'beats':['OPEN','REVEAL','EXPLAIN','CLOSE']}
+        _,short=compile_beats(scene,0,0.0,4.0)
+        _,long=compile_beats(scene,0,0.0,8.0)
+        self.assertNotEqual(short,long)
+        self.assertIn('7.',long)
+        self.assertNotIn('7.',short)
+
 if __name__ == '__main__':
     unittest.main()
