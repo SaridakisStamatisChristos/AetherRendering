@@ -1,0 +1,87 @@
+name: Recover verified v1.3 cinematic exports
+on:
+  push:
+    branches: [feature/cinematic-visuals-v1.3]
+    paths: [.github/workflows/publish-cinematic-v1.3.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: aether-cinematic-publish-v13
+  cancel-in-progress: false
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download previously verified 60fps outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: AetherRendering-cinematic-60fps
+          run-id: 43424568598
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: recovered
+      - name: Verify artifact provenance, frame geometry, audio, motion gates
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          root=Path('recovered/build/cinematic')
+          report=json.loads((root/'exports/report.json').read_text())
+          assert len(report['outputs'])==2, report
+          for name,w,h in (('vertical',1080,1920),('horizontal',1920,1080)):
+              f=root/'exports'/f'{name}.mp4'
+              assert f.is_file() and f.stat().st_size>1_000_000, f
+              record=next(x for x in report['outputs'] if Path(x['path']).name==f.name)
+              assert record['full_decode'] and record['audio_verified'] and record['audio_codec']=='aac',record
+              assert 25<=record['duration']<=36,record
+              assert record['mean_volume_db']>-58,record
+              probe=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_entries',
+                'stream=codec_type,codec_name,width,height,avg_frame_rate:format=duration',
+                '-of','json',str(f)]))
+              vids=[s for s in probe['streams'] if s['codec_type']=='video']
+              audio=[s for s in probe['streams'] if s['codec_type']=='audio']
+              assert vids and audio and audio[0]['codec_name']=='aac',probe
+              v=vids[0]
+              assert (v['width'],v['height'])==(w,h),v
+              n,d=map(int,v['avg_frame_rate'].split('/'))
+              assert abs(n/d-60)<.01,v
+              subprocess.run(['ffmpeg','-v','error','-xerror','-i',str(f),'-f','null','-'],check=True)
+              print('RE-VERIFIED',name,record['duration'],'sec',round(n/d,2),'fps',f.stat().st_size,'bytes')
+          for folder,frame_size in (('visual_qc',[270,480]),('visual_qc_landscape',[480,270])):
+              qc=json.loads((root/folder/'visual_qc.json').read_text())
+              assert qc['all_scenes_change'] is True and qc['sampled_frames']==15,qc
+              assert qc['sample_frame_size']==frame_size,qc
+              assert (root/folder/'contact_sheet.png').stat().st_size>10000
+          print('RE-VERIFIED 30 sampled frames and correct contact-sheet aspect ratios')
+          PY
+      - name: Publish recovered binaries onto current feature-branch head
+        run: |
+          git fetch origin feature/cinematic-visuals-v1.3
+          git reset --hard origin/feature/cinematic-visuals-v1.3
+          mkdir -p samples/sky-blue-cinematic
+          cp recovered/build/cinematic/exports/vertical.mp4 samples/sky-blue-cinematic/portrait-60fps.mp4
+          cp recovered/build/cinematic/exports/horizontal.mp4 samples/sky-blue-cinematic/landscape-60fps.mp4
+          cp recovered/build/cinematic/exports/report.json samples/sky-blue-cinematic/verification.json
+          cp recovered/build/cinematic/hyperframes/resolved_plan.json samples/sky-blue-cinematic/resolved_plan.json
+          cp recovered/build/cinematic/visual_qc/contact_sheet.png samples/sky-blue-cinematic/contact_sheet.png
+          cp recovered/build/cinematic/visual_qc/visual_qc.json samples/sky-blue-cinematic/visual_qc.json
+          cp recovered/build/cinematic/visual_qc_landscape/contact_sheet.png samples/sky-blue-cinematic/contact_sheet_landscape.png
+          cp recovered/build/cinematic/visual_qc_landscape/visual_qc.json samples/sky-blue-cinematic/visual_qc_landscape.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add samples/sky-blue-cinematic/
+          if ! git diff --cached --quiet; then
+            git commit -m 'demo: publish reverified portrait and landscape v1.3 visuals [skip ci]'
+            git push origin HEAD:feature/cinematic-visuals-v1.3
+          fi
+      - name: Log SHA256 checksums
+        run: |
+          sha256sum samples/sky-blue-cinematic/*.mp4
+          sha256sum samples/sky-blue-cinematic/contact_sheet*.png
