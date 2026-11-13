@@ -12,14 +12,15 @@ import subprocess
 
 from PIL import Image, ImageDraw, ImageFont, ImageStat, ImageChops
 
-FRAME_SIZE = (270, 480)
+PORTRAIT_FRAME = (270, 480)
+LANDSCAPE_FRAME = (480, 270)
 FRACTIONS = (0.17, 0.51, 0.83)
 
 
-def sample_frame(path, timestamp):
+def sample_frame(path, timestamp, frame_size):
     command = ['ffmpeg', '-hide_banner', '-loglevel', 'error', '-ss',
                f'{timestamp:.4f}', '-i', str(path), '-frames:v', '1',
-               '-vf', f'scale={FRAME_SIZE[0]}:{FRAME_SIZE[1]}:flags=bicubic',
+               '-vf', f'scale={frame_size[0]}:{frame_size[1]}:flags=bicubic',
                '-f', 'image2pipe', '-vcodec', 'png', '-']
     data = subprocess.run(command, check=True, capture_output=True).stdout
     if not data:
@@ -36,15 +37,24 @@ def change_score(first, second):
     return round(sum(ImageStat.Stat(differences).mean)/3,3)
 
 
+def detect_frame_size(video):
+    result=subprocess.run(['ffprobe','-v','error','-select_streams','v:0',
+                           '-show_entries','stream=width,height','-of','json',str(video)],
+                          check=True,capture_output=True,text=True)
+    stream=json.loads(result.stdout)['streams'][0]
+    return LANDSCAPE_FRAME if int(stream['width']) > int(stream['height']) else PORTRAIT_FRAME
+
+
 def examine(video, resolved_plan, output, min_change=0.40):
     scenes = resolved_plan.get('scenes', [])
     if len(scenes) < 2:
         raise ValueError('At least two scenes required for contact-sheet QA')
     target = Path(output)
     target.mkdir(parents=True, exist_ok=True)
+    frame_size = detect_frame_size(video)
     margin, space, header = 16, 12, 36
-    width = margin*2 + len(FRACTIONS)*FRAME_SIZE[0] + (len(FRACTIONS)-1)*space
-    row_height = FRAME_SIZE[1] + header + space
+    width = margin*2 + len(FRACTIONS)*frame_size[0] + (len(FRACTIONS)-1)*space
+    row_height = frame_size[1] + header + space
     sheet = Image.new('RGB',(width, margin*2 + row_height*len(scenes)), '#0B1425')
     draw = ImageDraw.Draw(sheet)
     font = ImageFont.load_default(size=18)
@@ -54,14 +64,14 @@ def examine(video, resolved_plan, output, min_change=0.40):
         duration = float(scene['duration'])
         if duration <= 0:
             raise ValueError('Invalid scene duration')
-        frames = [sample_frame(video, offset+duration*f) for f in FRACTIONS]
+        frames = [sample_frame(video, offset+duration*f, frame_size) for f in FRACTIONS]
         diffs = [change_score(frames[0],frames[1]),change_score(frames[1],frames[2])]
         entry = {'scene':i+1, 'title':scene['title'], 'duration_seconds':duration,
                  'frames_seconds':[round(offset+duration*f,3) for f in FRACTIONS],
                  'mean_rgb_deltas':diffs,'motion_gate_pass':max(diffs)>=min_change}
         changes.append(entry)
         for j, frame in enumerate(frames):
-            x=margin+j*(FRAME_SIZE[0]+space)
+            x=margin+j*(frame_size[0]+space)
             y=margin+i*row_height+header
             sheet.paste(frame,(x,y))
             draw.text((x,y-header+7), f'{i+1:02d} - {int(FRACTIONS[j]*100)}% - {scene["title"][:17]}',
@@ -69,7 +79,7 @@ def examine(video, resolved_plan, output, min_change=0.40):
         offset += duration
     contact_sheet = target/'contact_sheet.png'
     sheet.save(contact_sheet)
-    report={'input_video':str(video),'sampled_frames':len(scenes)*len(FRACTIONS),
+    report={'input_video':str(video),'sampled_frames':len(scenes)*len(FRACTIONS),'sample_frame_size':frame_size,
             'min_change_gate_rgb':min_change,'scenes':changes,
             'all_scenes_change':all(item['motion_gate_pass'] for item in changes),
             'contact_sheet':str(contact_sheet)}
