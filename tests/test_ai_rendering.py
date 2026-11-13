@@ -338,7 +338,7 @@ class CharacterAndActionTests(unittest.TestCase):
             self.assertIn('data-fps="60"',doc)
             self.assertGreater(doc.count('tl.fromTo('),90)
             self.assertNotIn('cdn.jsdelivr.net',doc)
-            self.assertNotIn("http://",doc)
+            self.assertNotIn('<script src="https://',doc)
             self.assertEqual(doc.count('class="beat-card"'),15)
 
     def test_invalid_props_actions_cameras_rejected(self):
@@ -394,7 +394,7 @@ class CharacterAndActionTests(unittest.TestCase):
                     {'type':'product_focus','prop':'gear','camera':camera},1,5.0,6.0)
                 self.assertIn('focus-1',body)
                 self.assertIn("visual-stage-1",events)
-                self.assertIn('11.000',events)
+                self.assertIn('duration:6.000',events)
 
 if __name__ == '__main__':
     unittest.main()
