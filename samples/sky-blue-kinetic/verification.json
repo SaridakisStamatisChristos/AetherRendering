@@ -1,0 +1,24 @@
+{
+  "engine": "hyperframes",
+  "voice_engine": "kokoro-local",
+  "outputs": [
+    {
+      "path": "/home/runner/work/AetherRendering/AetherRendering/build/kinetic/exports/vertical.mp4",
+      "size": 9067662,
+      "duration": 29.833333,
+      "full_decode": true,
+      "audio_verified": true,
+      "audio_codec": "aac",
+      "mean_volume_db": -22.7
+    },
+    {
+      "path": "/home/runner/work/AetherRendering/AetherRendering/build/kinetic/exports/horizontal.mp4",
+      "size": 8740565,
+      "duration": 29.833333,
+      "full_decode": true,
+      "audio_verified": true,
+      "audio_codec": "aac",
+      "mean_volume_db": -22.7
+    }
+  ]
+}
