@@ -31,7 +31,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg espeak-ng libsndfile1
           npm ci --no-audit --no-fund
-          python -m pip install kokoro-onnx soundfile
+          python -m pip install -r requirements-tts.txt
+          echo "HYPERFRAMES_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
           node_modules/.bin/hyperframes browser ensure
       - name: Validate Python and compile HTML/GSAP
         run: |

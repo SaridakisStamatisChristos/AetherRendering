@@ -28,4 +28,6 @@ These are separate post-v1.0 improvements or remaining deployment gates; do not 
 
 ## Installation
 
-Follow docs/LOCAL_SETUP.md. Use Python 3.11+, Node 22+, FFmpeg, npm ci and python -m pip install kokoro-onnx soundfile in the selected environment. Set HYPERFRAMES_PYTHON explicitly if it does not discover that Python.
+Follow docs/LOCAL_SETUP.md. Use Python 3.11+, Node 22+, FFmpeg, npm ci and python -m pip install -r requirements-tts.txt in the selected environment. Set HYPERFRAMES_PYTHON explicitly if it does not discover that Python.
+
+**Pinned Python direct dependencies:** requirements-tts.txt freezes Kokoro-ONNX 0.6.1 and SoundFile 0.14.0 as exercised in the real green smoke run; transitive Python packages remain subject to the package resolver.

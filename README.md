@@ -202,7 +202,7 @@ From the repository root, activate the Python virtual environment and run a shor
 ```bash
 source .venv/bin/activate
 npm ci
-python -m pip install kokoro-onnx soundfile
+python -m pip install -r requirements-tts.txt
 export HYPERFRAMES_PYTHON="$(command -v python)"
 python -m unittest discover -s tests -v
 node_modules/.bin/hyperframes browser ensure

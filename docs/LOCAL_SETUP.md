@@ -87,7 +87,7 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 # HyperFrames TTS requires this local Python backend:
-python -m pip install kokoro-onnx soundfile
+python -m pip install -r requirements-tts.txt
 export HYPERFRAMES_PYTHON="$(command -v python)"
 npm ci
 python --version
@@ -109,7 +109,7 @@ source .venv/bin/activate
 
 python -m pip --version || python -m ensurepip --upgrade
 python -m pip install -r requirements.txt
-python -m pip install kokoro-onnx soundfile
+python -m pip install -r requirements-tts.txt
 export HYPERFRAMES_PYTHON="$(command -v python)"
 npm ci
 python -m unittest discover -s tests -v

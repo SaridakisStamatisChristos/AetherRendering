@@ -29,7 +29,7 @@ sudo apt update && sudo apt install -y git ffmpeg espeak-ng python3-venv libsndf
 git clone https://github.com/SaridakisStamatisChristos/AetherRendering.git
 cd AetherRendering
 python3 -m venv .venv && source .venv/bin/activate
-python -m pip install kokoro-onnx soundfile
+python -m pip install -r requirements-tts.txt
 export HYPERFRAMES_PYTHON="$(command -v python)"
 npm ci
 python -m unittest discover -s tests -v
