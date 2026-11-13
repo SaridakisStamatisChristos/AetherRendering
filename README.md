@@ -55,6 +55,23 @@ python src/hyperframes_pipeline.py --plan examples/sky_blue_rich_30s.json \
 
 **Verification:** The real 60 fps, two-format render runs in the dedicated `visual-scenes-v1.1.yml` GitHub workflow; see the [visual scenes guide](docs/VISUAL_SCENES_V1_1.md). The dedicated real render [passed in GitHub Actions](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/runs/43413982958): 30 Python tests; two 29.83-second exports at 60 fps with real Kokoro narration, AAC audio and full decoding. [Download portrait MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/visual-scenes-v1.1/samples/sky-blue-rich/portrait-60fps.mp4) or [landscape MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/visual-scenes-v1.1/samples/sky-blue-rich/landscape-60fps.mp4). Artistic review is still required; stable `main` is unchanged.
 
+## v1.2 development — kinetic storytelling inside every shot
+
+On the experimental `feature/kinetic-storytelling-v1.2` branch, a scene can now contain **2–4 validated micro-beat labels**. Instead of leaving an illustration in place for five to seven seconds, the video reveals successive short explanations with separate entrance, hold/progress and exit animations. Vector diagrams continue moving through the later part of a scene, and short fades separate shots.
+
+The existing five illustration types, Gemini router, Kokoro narration, portrait/landscape outputs and selectable 30/60 fps are preserved. Old scripts without `beats` remain compatible.
+
+```json
+"visual": {"type": "particles"},
+"beats": [
+  "Sunlight enters the atmosphere",
+  "Molecules scatter blue more strongly",
+  "Red wavelengths scatter less"
+]
+```
+
+Try the enhanced science example at `examples/sky_blue_kinetic_30s.json`, or view [v1.2 feature documentation](docs/KINETIC_STORYTELLING_V1_2.md). Its [GitHub CI workflow](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/workflows/kinetic-storytelling-v1.2.yml) verifies the generated 60 fps narrated MP4. This is **not** word-aligned transcription: micro-beats are proportionally timed to measured Kokoro speech segments.
+
 ## How the system works
 
 ```text
