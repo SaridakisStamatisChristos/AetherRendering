@@ -6,13 +6,15 @@ The deterministic HyperFrames compiler transforms this data into real animation 
 """
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import re
 import sys
 from gemini_router import route_plan, discover_models, RouterError
+from visual_scenes import VISUAL_TYPES
 
-SCENE_KEYS = {'title', 'subtitle', 'narration', 'duration', 'motion'}
+SCENE_KEYS = {'title', 'subtitle', 'narration', 'duration', 'motion', 'visual'}
 MOTIONS = {'rise', 'slide', 'zoom', 'rotate', 'pop'}
 
 
@@ -39,6 +41,26 @@ def validate_plan(plan):
             raise ValueError(f'Scene {i}: duration must be 2–15 seconds')
         if scene.get('motion', 'rise') not in MOTIONS:
             raise ValueError(f'Scene {i}: unknown motion preset')
+        # Backwards compatible: old storyboards omit 'visual' entirely.
+        visual = scene.get('visual')
+        if visual is not None:
+            if not isinstance(visual, dict) or visual.get('type') not in VISUAL_TYPES:
+                raise ValueError(f'Scene {i}: invalid visual type')
+            permitted = {'type', 'labels', 'values'} if visual['type'] == 'comparison' else {'type'}
+            if set(visual) - permitted:
+                raise ValueError(f'Scene {i}: unsupported visual configuration')
+            if visual['type'] == 'comparison':
+                labels, values = visual.get('labels'), visual.get('values')
+                if (labels is None) != (values is None):
+                    raise ValueError(f'Scene {i}: comparison labels and values must appear together')
+                if labels is not None:
+                    if not isinstance(labels, list) or not 2 <= len(labels) <= 4 or not all(
+                            isinstance(x, str) and 1 <= len(x) <= 28 and x.strip() for x in labels):
+                        raise ValueError(f'Scene {i}: comparison labels must be 2–4 short strings')
+                    if not isinstance(values, list) or len(values) != len(labels) or not all(
+                            isinstance(x, (int, float)) and not isinstance(x, bool)
+                            and math.isfinite(x) and 0 <= x <= 1 for x in values):
+                        raise ValueError(f'Scene {i}: comparison values must be numbers between 0 and 1')
     if sum(s['duration'] for s in scenes) > 180:
         raise ValueError('Video must be 180 seconds or shorter')
     return plan
@@ -71,7 +93,11 @@ def gemini_prompt(topic, duration):
     return (f'Create an ORIGINAL short educational social video about: {topic!r}. '
             f'Target approximately {duration} seconds split into {n} scenes. '
             'Return ONLY JSON: {"topic":str,"accent":"#4CE0C1","scenes":'
-            '[{"title":str,"subtitle":str,"narration":str,"duration":number,"motion":str}]}. '
+            '[{"title":str,"subtitle":str,"narration":str,"duration":number,'
+            '"motion":str,"visual":{"type":str}}]}. '
+            'For visuals, choose an optional object type from spectrum,particles,orbit,comparison,horizon. '
+            'Use each only when it helps explain the content; varied visual styles are preferred. '
+            'For comparison only, optional equal-length arrays labels (2-4 short strings) and values (0-1 numbers) are supported. '
             'Each scene lasts 2–15 seconds. Motion must be one of rise,slide,zoom,rotate,pop. '
             'Use a persuasive opening, logically developed explanation, useful takeaway. '
             'Do not fabricate research, statistics, product pricing, quotations, or factual claims. '

@@ -6,6 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 from ai_director import demo_plan, validate_plan
+from visual_scenes import VISUAL_TYPES
 from hyperframes_pipeline import build_html, write_project, verify_video, FORMATS
 from unittest.mock import patch
 from subprocess import CompletedProcess
@@ -127,6 +128,67 @@ class BundlingTests(unittest.TestCase):
             self.assertEqual(out.read_text(), '/* fixture GSAP */')
             self.assertEqual(out.relative_to(root).as_posix(),
                              'vertical/assets/vendor/gsap.min.js')
+
+
+class VisualSceneTests(unittest.TestCase):
+    def visual_plan(self):
+        plan = demo_plan('Visual demo', 25)
+        visuals = [{'type':'spectrum'}, {'type':'particles'}, {'type':'orbit'},
+                   {'type':'comparison','labels':['ALPHA','BETA','GAMMA'],
+                    'values':[0.3,0.85,0.55]}, {'type':'horizon'}]
+        for scene,visual in zip(plan['scenes'],visuals):
+            scene['visual']=visual
+        return plan
+
+    def test_five_reusable_templates(self):
+        plan=self.visual_plan()
+        validate_plan(plan)
+        voices=[(None, s['duration']) for s in plan['scenes']]
+        for fmt in FORMATS:
+            doc=build_html(plan,fmt,voices,fps=60)
+            self.assertIn('data-fps="60"',doc)
+            for i,kind in enumerate(('spectrum','particles','orbit','comparison','horizon')):
+                self.assertIn(f'id="visual-stage-{i}"',doc)
+                self.assertIn(f'id="scene-{i}" class="clip scene rich"',doc)
+            self.assertIn('v-3-bar-2',doc)
+            self.assertIn('v-4-sun',doc)
+            self.assertIn('v-1-scatter-6',doc)
+            self.assertGreater(doc.count('tl.fromTo('),65)
+            self.assertNotIn('cdn.jsdelivr.net',doc)
+
+    def test_legacy_plan_unchanged(self):
+        doc=build_html(demo_plan('Legacy test',15),'vertical',
+                       [(None,5.0)]*3)
+        self.assertNotIn('class="clip scene rich"', doc)
+        self.assertNotIn('visual-stage-', doc)
+
+    def test_reject_unknown_visual(self):
+        plan=self.visual_plan()
+        plan['scenes'][0]['visual']={'type':'custom-js','code':'alert(1)'}
+        with self.assertRaisesRegex(ValueError,'invalid visual type'):
+            validate_plan(plan)
+
+    def test_reject_injection_in_visual(self):
+        plan=self.visual_plan()
+        plan['scenes'][0]['visual']['javascript']='alert(1)'
+        with self.assertRaisesRegex(ValueError,'unsupported visual configuration'):
+            validate_plan(plan)
+
+    def test_reject_invalid_comparisons(self):
+        for labels,values in ((['A','B'],[0.5]),(['A','B'],[0.3,1.5]),
+                              (['A','B'],[0.1,float('nan')]),(['A','B'],[True,0.5])):
+            plan=self.visual_plan()
+            plan['scenes'][3]['visual']={'type':'comparison','labels':labels,'values':values}
+            with self.assertRaises(ValueError):
+                validate_plan(plan)
+
+    def test_escaped_comparison_labels(self):
+        plan=self.visual_plan()
+        plan['scenes'][3]['visual']['labels'][0]='<script>alert(1)</script>'
+        validate_plan(plan)
+        doc=build_html(plan,'vertical',[(None,5.0)]*5)
+        self.assertIn('&lt;script&gt;',doc)
+        self.assertNotIn('<script>alert(1)</script>',doc)
 
 if __name__ == '__main__':
     unittest.main()

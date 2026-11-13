@@ -17,6 +17,7 @@ import subprocess
 import sys
 
 from ai_director import validate_plan
+from visual_scenes import visual_scene
 
 ROOT = Path(__file__).resolve().parents[1]
 HYPERFRAMES_BIN = ROOT / 'node_modules' / '.bin' / 'hyperframes'
@@ -77,7 +78,7 @@ def prepare_audio(plan, assets, voice='af_heart', generate=False):
     return audio
 
 
-def build_html(plan, format_name, voice_files):
+def build_html(plan, format_name, voice_files, fps=30):
     width, height = FORMATS[format_name]
     vertical = format_name == 'vertical'
     scale = 1 if vertical else .73
@@ -90,6 +91,8 @@ def build_html(plan, format_name, voice_files):
         sid = f'scene-{i}'
         title = html.escape(scene['title'], quote=True)
         subtitle = html.escape(scene['subtitle'], quote=True)
+        visual_html, visual_tweens = visual_scene(scene, i, start, duration)
+        scene_class = 'scene rich' if visual_html else 'scene'
         # Optional motion presets become deterministic, seekable GSAP tweens.
         motion = scene.get('motion', 'rise')
         enters = {
@@ -97,8 +100,9 @@ def build_html(plan, format_name, voice_files):
             'zoom': 'scale:0.65,opacity:0', 'rotate': 'rotation:-8,scale:0.9,opacity:0',
             'pop': 'scale:0.7,opacity:0',
         }[motion]
-        sections.append(f'''<section id="{sid}" class="clip scene" data-start="{start:g}" data-duration="{duration:g}" data-track-index="1">
+        sections.append(f'''<section id="{sid}" class="clip {scene_class}" data-start="{start:g}" data-duration="{duration:g}" data-track-index="1">
   <div class="decor"><span></span><span></span><span></span></div>
+  {visual_html}
   <div class="stripe"></div><p class="eyebrow">AETHER VIDEO ENGINE <span>{i+1:02d}/{len(plan['scenes']):02d}</span></p>
   <div class="story"><div class="index">0{i+1}</div><h1 id="title-{i}">{title}</h1>
   <p id="subtitle-{i}" class="subtitle">{subtitle}</p></div>
@@ -111,7 +115,8 @@ def build_html(plan, format_name, voice_files):
         # Global positions are explicit, not wall-clock timers or infinite CSS animation.
         animation.append(f'''tl.fromTo('#title-{i}',{{{enters}}},{{x:0,y:0,scale:1,rotation:0,opacity:1,duration:{anim_length:.3f},ease:'power3.out'}},{start + .12:.3f});
 tl.fromTo('#subtitle-{i}',{{y:35,opacity:0}},{{y:0,opacity:1,duration:0.55,ease:'power2.out'}},{start + .4:.3f});
-tl.fromTo('#progress-{i}',{{scaleX:0}},{{scaleX:1,duration:{duration:.3f},ease:'none'}},{start:.3f});''')
+tl.fromTo('#progress-{i}',{{scaleX:0}},{{scaleX:1,duration:{duration:.3f},ease:'none'}},{start:.3f});
+{visual_tweens}''')
         t += duration
     return f'''<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -129,8 +134,19 @@ h1{{font-size:{103 if vertical else 117}px;line-height:1.01;letter-spacing:-3px;
 .decor{{position:absolute;inset:0;opacity:.25;pointer-events:none}}.decor span{{position:absolute;border-radius:50%;border:5px solid {plan.get('accent','#4CE0C1')};width:600px;height:600px;right:-250px;top:10%}}.decor span:nth-child(2){{right:-100px;top:28%;width:370px;height:370px;opacity:.4}}.decor span:nth-child(3){{right:23%;top:75%;width:140px;height:140px;opacity:.6}}
 footer{{font-size:23px;letter-spacing:2px;text-transform:uppercase;display:flex;justify-content:space-between;gap:30px;z-index:2;color:#9AADB8;max-width:100%;overflow:hidden;white-space:nowrap}}footer b{{color:#E3EEF2;overflow:hidden;text-overflow:ellipsis}}
 .progress{{position:absolute;bottom:0;left:0;height:12px;width:100%;background:{plan.get('accent','#4CE0C1')};transform-origin:left center}}
+/* Rich scenes retain the original JSON/text pipeline while dedicating
+   substantially more screen area and keyframed motion to illustrations. */
+.scene.rich .visual-stage{{position:absolute;left:{65 if vertical else 165}px;right:{65 if vertical else 165}px;top:{345 if vertical else 145}px;height:{850 if vertical else 615}px;pointer-events:none;z-index:1}}
+.scene.rich .visual-stage svg{{display:block;width:100%;height:100%;overflow:visible}}
+.scene.rich .decor{{opacity:.10}}
+.scene.rich .story{{position:absolute;left:{95 if vertical else 165}px;right:{95 if vertical else 165}px;bottom:{280 if vertical else 145}px;margin:0;max-width:none}}
+.scene.rich .index{{display:none}}
+.scene.rich h1{{font-size:{77 if vertical else 72}px;letter-spacing:-1px;margin:0 0 14px;line-height:1.04;text-shadow:0 3px 20px #071423}}
+.scene.rich .subtitle{{font-size:{30 if vertical else 32}px;margin:0;line-height:1.25;text-shadow:0 2px 8px #071423}}
+.scene.rich footer{{margin-top:auto}}
+
 </style></head>
-<body><div id="root" data-composition-id="aether-{format_name}" data-start="0" data-width="{width}" data-height="{height}" data-duration="{total:g}" data-fps="30">
+<body><div id="root" data-composition-id="aether-{format_name}" data-start="0" data-width="{width}" data-height="{height}" data-duration="{total:g}" data-fps="{fps}">
 {''.join(sections)}
 {''.join(audios)}
 </div>
@@ -143,7 +159,7 @@ window.__timelines['aether-{format_name}']=tl;</script>
 '''
 
 
-def write_project(plan, destination, with_voice=False, voice='af_heart'):
+def write_project(plan, destination, with_voice=False, voice='af_heart', fps=30):
     # Plan validation occurs before any file, subprocess, or network activity.
     validate_plan(plan)
     destination = Path(destination)
@@ -152,7 +168,7 @@ def write_project(plan, destination, with_voice=False, voice='af_heart'):
     for name in FORMATS:
         dirpath = destination / name
         dirpath.mkdir(parents=True, exist_ok=True)
-        (dirpath / 'index.html').write_text(build_html(plan, name, voices), encoding='utf-8')
+        (dirpath / 'index.html').write_text(build_html(plan, name, voices, fps=fps), encoding='utf-8')
         # Compilation-only unit tests may run before npm ci; a real render requires this local file.
         if GSAP_BUNDLE.is_file():
             bundle_gsap(dirpath)
@@ -216,7 +232,7 @@ def main():
     if args.render and not args.tts:
         p.error('For production rendering, pass --tts to include synchronized Kokoro narration')
     plan = json.loads(Path(args.plan).read_text(encoding='utf-8'))
-    out = write_project(plan, args.out_dir, args.tts, args.voice)
+    out = write_project(plan, args.out_dir, args.tts, args.voice, fps=args.fps)
     print('HyperFrames compositions created:', out)
     if args.render:
         cli = hyperframes_cli()
