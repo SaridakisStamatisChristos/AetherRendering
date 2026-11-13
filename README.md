@@ -346,11 +346,11 @@ Expected video dimensions are **1080×1920 portrait** and **1920×1080 landscape
 | **No suitable Gemini model** | Check real model availability, key, quotas, enabled `config/gemini_router.json` candidates. |
 | **429 / rate limits** | Lower usage; router may try an allowed fallback, but cannot bypass project limits. |
 | **Node is too old / `npx` not found** | Install Node.js 22+ and confirm `node --version`. |
-| **Headless browser missing** | Run `npx --yes hyperframes browser ensure`. |
+| **Headless browser missing** | Run `node_modules/.bin/hyperframes browser ensure` after `npm ci`. |
 | **Kokoro voice generation fails** | Check chosen voice and initial model download; read the TTS step log. |
 | **Video length differs from target** | Timing follows measured narration, not the `seconds` value exactly. |
 | **Visuals seem like slides** | Current engine generates typographic motion graphics; media/3D/advanced editing remain future work. |
-| **Results change between runs** | The HyperFrames package is currently unpinned; use a tested pinned version for stable builds. |
+| **Results change between runs** | Use `npm ci` with the committed lockfile; the browser and model asset caches still need separate control. |
 | **State/ledger push fails** | Check workflow `contents: write`, branch protection and concurrency rules. |
 | **Can't watch GitHub MP4 on Android** | Choose the raw/download link; play the downloaded file locally. |
 

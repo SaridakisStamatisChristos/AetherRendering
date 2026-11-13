@@ -291,7 +291,7 @@ python -m unittest discover -s tests -v
 
 The `~/AetherRendering` path assumes you cloned from your home directory; adjust if you chose a different location.
 
-**Dependency pinning:** The present source invokes `node_modules/.bin/hyperframes` without a version pin, so future runs can install a newer CLI. Check `node_modules/.bin/hyperframes info` and make a note of the version for a reproducible production campaign. Consider pinning the npm version after your environment has been tested.
+**Dependency pinning:** `package.json` pins HyperFrames 0.9.37 and GSAP 3.14.2. `package-lock.json` freezes all transitive npm dependencies. Use `npm ci` rather than unpinned `npx` invocation; still record/cache the browser and Kokoro model files.
 
 **Don't commit secrets or generated output inadvertently.** Before `git add`/`git commit`, inspect `git status`. Keep your own `build/`, speech WAVs, local usage state and secrets private as appropriate.
 

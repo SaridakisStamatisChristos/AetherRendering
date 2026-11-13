@@ -42,6 +42,22 @@ jobs:
       - name: Generate Kokoro voice and render two videos
         run: |
           python src/hyperframes_pipeline.py --plan build/video_plan.json --out-dir build/hyperframes --tts --render --output build/exports
+      - name: Print and assert audio-enabled render evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path('build/exports/report.json').read_text())
+          assert report.get('engine')=='hyperframes'
+          outputs=report.get('outputs',[])
+          assert len(outputs)==2, outputs
+          for item in outputs:
+              assert item.get('full_decode') is True, item
+              assert item.get('audio_verified') is True, item
+              assert item.get('mean_volume_db', -100) > -58, item
+              assert item.get('duration', 0) > 0, item
+              print(f"PASSED: {Path(item['path']).name} {item['duration']:.2f}s; audio {item['audio_codec']}, mean {item['mean_volume_db']} dB")
+          PY
       - name: Upload results even on failure
         if: always()
         uses: actions/upload-artifact@v4
