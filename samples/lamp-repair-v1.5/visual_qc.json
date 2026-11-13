@@ -1,0 +1,88 @@
+{
+  "input_video": "build/kinematic15/exports/vertical.mp4",
+  "sampled_frames": 15,
+  "sample_frame_size": [
+    270,
+    480
+  ],
+  "min_change_gate_rgb": 0.4,
+  "scenes": [
+    {
+      "scene": 1,
+      "title": "THE LAMP GOES DARK",
+      "duration_seconds": 6.729,
+      "frames_seconds": [
+        1.144,
+        3.432,
+        5.585
+      ],
+      "mean_rgb_deltas": [
+        5.284,
+        3.251
+      ],
+      "motion_gate_pass": true
+    },
+    {
+      "scene": 2,
+      "title": "LIFT THE BATTERY",
+      "duration_seconds": 5.918,
+      "frames_seconds": [
+        7.735,
+        9.747,
+        11.641
+      ],
+      "mean_rgb_deltas": [
+        3.056,
+        3.952
+      ],
+      "motion_gate_pass": true
+    },
+    {
+      "scene": 3,
+      "title": "LOOK FOR DAMAGE",
+      "duration_seconds": 7.113,
+      "frames_seconds": [
+        13.856,
+        16.275,
+        18.551
+      ],
+      "mean_rgb_deltas": [
+        3.668,
+        3.085
+      ],
+      "motion_gate_pass": true
+    },
+    {
+      "scene": 4,
+      "title": "SET IT DOWN",
+      "duration_seconds": 5.961,
+      "frames_seconds": [
+        20.773,
+        22.8,
+        24.708
+      ],
+      "mean_rgb_deltas": [
+        3.593,
+        3.255
+      ],
+      "motion_gate_pass": true
+    },
+    {
+      "scene": 5,
+      "title": "LIGHT RETURNS",
+      "duration_seconds": 7.241,
+      "frames_seconds": [
+        26.952,
+        29.414,
+        31.731
+      ],
+      "mean_rgb_deltas": [
+        1.882,
+        1.273
+      ],
+      "motion_gate_pass": true
+    }
+  ],
+  "all_scenes_change": true,
+  "contact_sheet": "build/kinematic15/visual_qc/contact_sheet.png"
+}
