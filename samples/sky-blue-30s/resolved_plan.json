@@ -1,0 +1,43 @@
+{
+  "topic": "Why the sky is blue",
+  "accent": "#4CE0C1",
+  "scenes": [
+    {
+      "title": "WHY THE SKY IS BLUE",
+      "subtitle": "The color starts with white sunlight.",
+      "narration": "Sunlight looks white, but it is a mixture of all the colors we can see.",
+      "duration": 4.211,
+      "motion": "rise"
+    },
+    {
+      "title": "LIGHT MEETS AIR",
+      "subtitle": "Tiny molecules redirect incoming light.",
+      "narration": "In the atmosphere, small molecules scatter short blue wavelengths much more strongly than longer red wavelengths.",
+      "duration": 6.963,
+      "motion": "slide"
+    },
+    {
+      "title": "BLUE FROM EVERYWHERE",
+      "subtitle": "Scattered blue light fills the sky.",
+      "narration": "That blue light spreads in every direction and reaches our eyes from across the sky above us.",
+      "duration": 5.513,
+      "motion": "zoom"
+    },
+    {
+      "title": "BUT WHY NOT VIOLET?",
+      "subtitle": "Our vision favors the blue we notice.",
+      "narration": "Violet scatters even more, but sunlight has less of it, and our eyes respond less strongly.",
+      "duration": 5.875,
+      "motion": "rotate"
+    },
+    {
+      "title": "THE SUNSET TWIST",
+      "subtitle": "Longer paths reveal warmer colors.",
+      "narration": "At sunset, sunlight travels through more air. More blue scatters away, leaving brilliant orange and red colors.",
+      "duration": 7.262,
+      "motion": "pop"
+    }
+  ],
+  "resolved_duration_seconds": 29.824,
+  "voice": "af_heart"
+}
