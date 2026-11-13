@@ -307,5 +307,94 @@ class LandscapeLayoutTests(unittest.TestCase):
         self.assertIn('top:345px;height:850px',page)
         self.assertIn('top:1240px;height:145px',page)
 
+
+class CharacterAndActionTests(unittest.TestCase):
+    def sample(self):
+        plan=demo_plan('Solar electricity',25)
+        v=[
+            {'type':'character_stage','prop':'solar_panel','action':'point','camera':'wide'},
+            {'type':'object_chain','items':['sun','solar_panel','battery','lamp'],'camera':'pan_right'},
+            {'type':'character_stage','prop':'battery','action':'operate','camera':'push_in'},
+            {'type':'product_focus','prop':'lamp','camera':'detail'},
+            {'type':'character_stage','prop':'lamp','action':'celebrate','camera':'pan_left'},
+        ]
+        for scene, config in zip(plan['scenes'],v):
+            scene['visual']=config
+            scene['beats']=['The starting point','Follow the change','See the result']
+        return plan
+
+    def test_five_animated_scenes_compile_for_both_aspects(self):
+        plan=self.sample()
+        validate_plan(plan)
+        for fmt in FORMATS:
+            doc=build_html(plan,fmt,[(None,5)]*5,fps=60)
+            self.assertIn('id="actor-0"',doc)
+            self.assertIn('id="actor-2-arm-right"',doc)
+            self.assertIn('id="actor-4-eyes"',doc)
+            self.assertIn('id="chain-1-0"',doc)
+            self.assertIn('id="chain-1-3"',doc)
+            self.assertIn('id="focus-3"',doc)
+            self.assertIn('id="scene-4"',doc)
+            self.assertIn('data-fps="60"',doc)
+            self.assertGreater(doc.count('tl.fromTo('),90)
+            self.assertNotIn('cdn.jsdelivr.net',doc)
+            self.assertNotIn("http://",doc)
+            self.assertEqual(doc.count('class="beat-card"'),15)
+
+    def test_invalid_props_actions_cameras_rejected(self):
+        changes=[
+          {'prop':'javascript:'},
+          {'action':'run_user_code'},
+          {'camera':'document.write'},
+          {'foo':'anything'},
+        ]
+        for change in changes:
+            with self.subTest(change=change):
+                plan=self.sample()
+                plan['scenes'][0]['visual'].update(change)
+                with self.assertRaisesRegex(ValueError,'(unsupported|unknown)'):
+                    validate_plan(plan)
+
+    def test_chain_must_have_bounded_known_objects(self):
+        for items in ([],['sun'],['sun','battery','lamp','box','book'],
+                      ['sun','<script>'],['sun',123],['sun','battery',{}]):
+            with self.subTest(items=items):
+                plan=self.sample()
+                plan['scenes'][1]['visual']['items']=items
+                with self.assertRaisesRegex(ValueError,'chain requires'):
+                    validate_plan(plan)
+
+    def test_missing_required_prop_rejected(self):
+        plan=self.sample()
+        plan['scenes'][3]['visual'].pop('prop')
+        with self.assertRaisesRegex(ValueError,'unsupported prop'):
+            validate_plan(plan)
+
+    def test_old_visuals_and_without_visuals_preserved(self):
+        for name in ('spectrum','particles','orbit','comparison','horizon','sky_dome','perception'):
+            self.assertIn(name,VISUAL_TYPES)
+        doc=build_html(demo_plan('Legacy compatibility',15),'horizontal',[(None,5)]*3)
+        self.assertNotIn('id="actor-',doc)
+        self.assertNotIn('id="chain-',doc)
+
+    def test_all_five_character_actions_are_synthesized(self):
+        from action_scenes import render_action
+        for act in ('introduce','point','lift','operate','celebrate'):
+            with self.subTest(action=act):
+                body, gsap=render_action({'type':'character_stage','prop':'box','action':act},0,0.0,6.0)
+                self.assertIn('actor-0-head',body)
+                self.assertIn("tl.fromTo('#actor-0'",gsap)
+                self.assertIn('duration:',gsap)
+
+    def test_camera_selection_changes_temporal_geometry(self):
+        from action_scenes import render_action
+        for camera in ('wide','push_in','pan_left','pan_right','detail'):
+            with self.subTest(camera=camera):
+                body, events=render_action(
+                    {'type':'product_focus','prop':'gear','camera':camera},1,5.0,6.0)
+                self.assertIn('focus-1',body)
+                self.assertIn("visual-stage-1",events)
+                self.assertIn('11.000',events)
+
 if __name__ == '__main__':
     unittest.main()

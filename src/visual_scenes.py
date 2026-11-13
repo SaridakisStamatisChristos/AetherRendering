@@ -7,8 +7,9 @@ wall-clock timers, JavaScript eval, remote media, or user-authored code.
 import html
 import math
 from cinematic_scenes import CINEMATIC_TYPES, render_cinematic
+from action_scenes import ACTION_TYPES, render_action
 
-VISUAL_TYPES = frozenset({"spectrum", "particles", "orbit", "comparison", "horizon"}) | CINEMATIC_TYPES
+VISUAL_TYPES = frozenset({"spectrum", "particles", "orbit", "comparison", "horizon"}) | CINEMATIC_TYPES | ACTION_TYPES
 
 
 def _tween(selector, source, dest, at):
@@ -33,6 +34,9 @@ def visual_scene(scene, index, start, seconds):
     if config is None:
         return "", ""
     mode = config["type"]
+    if mode in ACTION_TYPES:
+        illustration, events = render_action(config, index, start, seconds)
+        return _svg(illustration, index), events
     if mode in CINEMATIC_TYPES:
         illustration, events = render_cinematic(mode, index, start, seconds)
         opening = _tween(f"#visual-stage-{index}",

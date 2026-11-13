@@ -14,6 +14,7 @@ import sys
 from gemini_router import route_plan, discover_models, RouterError
 from visual_scenes import VISUAL_TYPES
 from kinetic_storytelling import validate_beats
+from action_scenes import ACTION_TYPES, validate_action
 
 SCENE_KEYS = {'title', 'subtitle', 'narration', 'duration', 'motion', 'visual', 'beats'}
 MOTIONS = {'rise', 'slide', 'zoom', 'rotate', 'pop'}
@@ -48,6 +49,9 @@ def validate_plan(plan):
         if visual is not None:
             if not isinstance(visual, dict) or visual.get('type') not in VISUAL_TYPES:
                 raise ValueError(f'Scene {i}: invalid visual type')
+            if visual['type'] in ACTION_TYPES:
+                validate_action(visual, i)
+                continue
             permitted = {'type', 'labels', 'values'} if visual['type'] == 'comparison' else {'type'}
             if set(visual) - permitted:
                 raise ValueError(f'Scene {i}: unsupported visual configuration')
@@ -100,7 +104,7 @@ def gemini_prompt(topic, duration):
             'Add 2 or 3 concise visual beat labels per scene, each 2–8 words. '
             'Beat labels must explain successive stages of the visual and be factually accurate. '
             'For visuals, choose an optional object type from spectrum,particles,orbit,comparison,horizon,sky_dome,perception. '
-            'Use each only when it helps explain the content; varied visual styles are preferred. Prefer sky_dome to explain atmospheric scattering and perception for qualitative color vision; do not fabricate numeric values for scientific comparisons. '
+            'Use each only when it helps explain the content; varied visual styles are preferred. Prefer sky_dome to explain atmospheric scattering and perception for qualitative color vision; do not fabricate numeric values for scientific comparisons. For action scenes, support character_stage (requires prop and optionally action: introduce,point,lift,operate,celebrate), object_chain (requires items array of 2–4 named props), product_focus (requires prop); allowed props are sun,solar_panel,battery,lamp,gear,book,box; optional camera is wide,push_in,pan_left,pan_right,detail. Use actions to SHOW what the narration describes rather than writing another static slide. '
             'For comparison only, optional equal-length arrays labels (2-4 short strings) and values (0-1 numbers) are supported. '
             'Each scene lasts 2–15 seconds. Motion must be one of rise,slide,zoom,rotate,pop. '
             'Use a persuasive opening, logically developed explanation, useful takeaway. '
