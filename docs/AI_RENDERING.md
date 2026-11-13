@@ -33,7 +33,7 @@ python -m pip install -r requirements-tts.txt
 export HYPERFRAMES_PYTHON="$(command -v python)"
 npm ci
 python -m unittest discover -s tests -v
-npx --yes hyperframes browser ensure
+node_modules/.bin/hyperframes browser ensure
 python src/ai_director.py --topic "How computers render animations" --provider demo --duration 25
 python src/hyperframes_pipeline.py --tts --render --output build/exports
 ```
@@ -51,7 +51,8 @@ For fast, entirely offline compilation tests (no TTS, MP4, or API calls):
 python src/ai_director.py --topic "Motion graphics" --provider demo --duration 25
 python src/hyperframes_pipeline.py
 # Open: build/hyperframes/vertical/index.html (via HyperFrames preview)
-cd build/hyperframes/vertical && npx --yes hyperframes preview
+HYPERFRAMES_BIN="$(realpath node_modules/.bin/hyperframes)"
+cd build/hyperframes/vertical && "$HYPERFRAMES_BIN" preview
 ```
 
 ## Notes and limitations
