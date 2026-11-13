@@ -114,5 +114,19 @@ class DeliveryValidationTests(unittest.TestCase):
             self.assertEqual(result['mean_volume_db'], -27.4)
 
 
+
+class BundlingTests(unittest.TestCase):
+    def test_gsap_copied_into_generated_composition(self):
+        from hyperframes_pipeline import bundle_gsap
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / 'gsap.min.js'
+            source.write_text('/* fixture GSAP */')
+            with patch('hyperframes_pipeline.GSAP_BUNDLE', source):
+                out = bundle_gsap(root / 'vertical')
+            self.assertEqual(out.read_text(), '/* fixture GSAP */')
+            self.assertEqual(out.relative_to(root).as_posix(),
+                             'vertical/assets/vendor/gsap.min.js')
+
 if __name__ == '__main__':
     unittest.main()
