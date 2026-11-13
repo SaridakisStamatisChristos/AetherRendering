@@ -55,6 +55,18 @@ python src/hyperframes_pipeline.py --plan examples/sky_blue_rich_30s.json \
 
 **Verification:** The real 60 fps, two-format render runs in the dedicated `visual-scenes-v1.1.yml` GitHub workflow; see the [visual scenes guide](docs/VISUAL_SCENES_V1_1.md). The dedicated real render [passed in GitHub Actions](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/runs/43413982958): 30 Python tests; two 29.83-second exports at 60 fps with real Kokoro narration, AAC audio and full decoding. [Download portrait MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/visual-scenes-v1.1/samples/sky-blue-rich/portrait-60fps.mp4) or [landscape MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/visual-scenes-v1.1/samples/sky-blue-rich/landscape-60fps.mp4). Artistic review is still required; stable `main` is unchanged.
 
+## v1.4 — Illustrated characters, object actions and camera views
+
+The experimental [v1.4 development branch](https://github.com/SaridakisStamatisChristos/AetherRendering/tree/feature/character-actions-v1.4) adds three optional JSON-driven scene families:
+
+- `character_stage` with a consistent articulated 2D presenter (head/eyes/arms/legs), gestures `introduce`, `point`, `lift`, `operate`, `celebrate` and seven reusable props.
+- `object_chain` with 2–4 sequenced objects connected through animated flow arrows.
+- `product_focus` with a cinematic object reveal, highlight accents and slow camera motion.
+
+All use local SVG + pinned GSAP/HyperFrames and preserve previous storyboards. Camera presets: `wide`, `push_in`, `pan_left`, `pan_right`, `detail`. The presenter is a stylized illustration rather than 3D/lip-synced footage.
+
+The new original sample `examples/solar_power_actions_30s.json` follows an engineer explaining solar electricity through five shots and 15 micro-beats. Its dedicated [60 fps CI and rendering workflow](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/workflows/character-actions-v1.4.yml) validates real Kokoro narration, portrait/landscape MP4s, and 30 contact-sheet samples. See [v1.4 technical usage](docs/CHARACTER_ACTIONS_V1_4.md). This branch remains experimental pending verified renders and visual inspection; `main` is unchanged.
+
 ## v1.3 — Cinematic science animation preview (verified)
 
 The v1.3 experimental branch improves *visual storytelling*, not just video frame rate. New narrative diagrams illustrate blue photons reaching human eyes from multiple directions (`sky_dome`) and qualitative color perception (`perception`), replacing the earlier globe and ungrounded bar-chart metaphors. The 15 micro-beat transitions, other 5 scene templates, Kokoro narration and validated JSON contracts remain intact.
