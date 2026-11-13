@@ -7,7 +7,7 @@ The character is procedural 2D; this is not motion capture or 3D skeletal riggin
 import json
 import math
 
-from action_scenes import PROPS, CAMERAS, _base, _character, _prop, _camera
+from action_scenes import PROPS, CAMERAS, _base, _character, _prop, _camera as _base_camera
 
 KINEMATIC_TYPES = frozenset({"kinematic_stage"})
 BEHAVIORS = frozenset({"walk_to", "pick_up", "inspect", "set_down", "operate"})
@@ -33,6 +33,15 @@ def _tween(selector, source, dest, start):
         raise ValueError("Malformed authored tween")
     end = dest[:-1] + ",immediateRender:false}"
     return f"tl.fromTo('#{selector}',{source},{end},{start:.3f});"
+
+
+def _camera(index, preset, start, duration):
+    """Retain established camera presets while disabling eager GSAP initialization."""
+    result = _base_camera(index, preset, start, duration)
+    needle = "ease:'none'}"
+    if result.count(needle) != 1:
+        raise RuntimeError("Camera tween format changed")
+    return result.replace(needle, "ease:'none',immediateRender:false}")
 
 
 def validate_kinematic(config, index):
