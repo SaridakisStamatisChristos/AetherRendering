@@ -3,3 +3,9 @@ __pycache__/
 output/_build/
 voice_wavs/
 *.log
+node_modules/
+build/
+.cache/
+.env
+.env.*
+*.pyc

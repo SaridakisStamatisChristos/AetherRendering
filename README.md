@@ -17,12 +17,13 @@ AetherRendering produces short, narrated videos in **Instagram/Reels portrait (1
 | Discover and select compatible configured Gemini models | Implemented; live access depends on your account |
 | Configurable model priorities, protective limits, fallback and usage audit | Implemented |
 | Compile storyboard into HTML/CSS/GSAP for both aspect ratios | Implemented |
-| Synthesize Kokoro audio through HyperFrames CLI | Implemented; a GitHub demonstration has rendered successfully |
-| Render portrait and landscape MP4s, verify codec/dimensions/full decode | Implemented; demonstration outputs preserved |
+| Synthesize Kokoro through HyperFrames with the required Python ONNX backend | Real synthesis and CI demonstration verified |
+| Render portrait and landscape MP4s, verify codec/dimensions/full decode AND non-silent audio | Verified in real development-branch CI |
 | Create scene-specific photos, 3D assets, video clips, or music | **Not yet implemented** |
 | Word-by-word timed captions in the new engine | **Not yet implemented** |
 | Upload each new video directly to Instagram/YouTube | **Not implemented** |
 | Automatically create GitHub Releases for each new video | **Not yet implemented** |
+| Pinned rendering dependencies | HyperFrames 0.9.37, GSAP 3.14.2 and npm lockfile; local JS vendor bundle |
 
 The current aesthetic uses **animated typography and simple motion graphics**. Do not confuse it with an autonomous, fully cinematic video-editing system. AI-created content still requires factual and editorial review.
 
@@ -174,13 +175,13 @@ See [**Gemini Router documentation**](docs/GEMINI_ROUTER.md) for detailed behavi
 
 | Tool | What it does | In this project |
 |---|---|---|
-| [**HyperFrames**](https://github.com/heygen-com/hyperframes) | Renders browser-based HTML/JavaScript video compositions | Primary renderer, invoked via `npx --yes hyperframes` |
+| [**HyperFrames**](https://github.com/heygen-com/hyperframes) | Renders browser-based HTML/JavaScript video compositions | Pinned local renderer: `node_modules/.bin/hyperframes` |
 | [**Kokoro**](https://github.com/hexgrad/kokoro) | Text-to-speech model family | Generates WAV narration via the HyperFrames CLI `tts` command |
-| [**Kokoro-ONNX**](https://github.com/thewh1teagle/kokoro-onnx) | Alternative local Python/ONNX implementation | Optional dependency / possible independent integration |
+| [**Kokoro-ONNX**](https://github.com/thewh1teagle/kokoro-onnx) | Local Python speech backend | Required by the installed HyperFrames TTS CLI |
 | **Gemini** | Creates the storyboard and narration text | Optional AI Director accessed with your API key |
 | **FFmpeg/ffprobe** | Checks video/audio streams and verifies decodability | Verification and legacy fallback rendering |
 
-No fork of either upstream project is required. The new pipeline's `prepare_audio()` calls `npx --yes hyperframes tts ...` and measures each WAV with `ffprobe`; scene durations are then derived from the actual speech timings. The optional `src/kokoro_voice.py` is a **different** Python adapter for the older FFmpeg path and uses the `kokoro` package, not the main HyperFrames TTS route.
+No fork of either upstream project is required. **HyperFrames' CLI still needs `kokoro-onnx` and `soundfile` installed in Python for local TTS**; it is the CLI's backend, not a separate custom narration implementation. The new pipeline's `prepare_audio()` calls pinned `node_modules/.bin/hyperframes tts ...` and measures each WAV with `ffprobe`; scene durations are then derived from the actual speech timings. The required `kokoro-onnx` and `soundfile` Python packages power HyperFrames' own TTS CLI. The optional `src/kokoro_voice.py` is a **different** legacy Python adapter and is not used by the primary pipeline.
 
 **Language note:** The currently integrated Kokoro voices do not establish Greek TTS support. A separate compatible Greek-language speech backend would be needed.
 
@@ -190,9 +191,9 @@ No fork of either upstream project is required. The new pipeline's `prepare_audi
 
 **Full step-by-step guide:** [**docs/LOCAL_SETUP.md — Local Installation & Setup**](docs/LOCAL_SETUP.md)
 
-The new guide explains **Ubuntu 24.04/22.04 requirements**, Node.js 22+ installation with nvm, Python 3.11+ virtual environments (including a Python 3.12 alternative for older Ubuntu), FFmpeg, Kokoro voice testing, browser installation, Gemini key handling, MP4 verification, upgrades, and troubleshooting.
+The new guide explains **Ubuntu 24.04/22.04 requirements**, Node.js 22+ installation with nvm, pinned npm dependencies, required `kokoro-onnx` speech backend, Python 3.11+ virtual environments (including a Python 3.12 alternative for older Ubuntu), FFmpeg, Kokoro voice testing, browser installation, Gemini key handling, MP4 verification, upgrades, and troubleshooting.
 
-You do **not** need to fork either HyperFrames or Kokoro. The primary video pipeline obtains HyperFrames through `npx`, and its built-in Kokoro TTS generates local WAV narration. A Gemini key is needed only if you want original AI-written scripts.
+You do **not** need to fork either HyperFrames or Kokoro. The primary video pipeline invokes a locally installed and pinned HyperFrames CLI; its built-in TTS requires Python `kokoro-onnx` and `soundfile`. A Gemini key is needed only if you want original AI-written scripts.
 
 ### At a glance (after completing the installation guide)
 
@@ -200,8 +201,11 @@ From the repository root, activate the Python virtual environment and run a shor
 
 ```bash
 source .venv/bin/activate
+npm ci
+python -m pip install kokoro-onnx soundfile
+export HYPERFRAMES_PYTHON="$(command -v python)"
 python -m unittest discover -s tests -v
-npx --yes hyperframes browser ensure
+node_modules/.bin/hyperframes browser ensure
 
 python src/ai_director.py \
   --provider demo --topic "How video rendering works" \
@@ -357,12 +361,12 @@ Expected video dimensions are **1080×1920 portrait** and **1920×1080 landscape
 - Store API credentials only in GitHub **Actions secrets** or a temporary local environment; never commit keys.
 - Gemini-generated storyboards are treated as **untrusted structured data**. They are validated, not executed as arbitrary model-authored JavaScript.
 - Model quotas and token estimates are protective approximations. The router cannot enforce Google billing limits or see other apps' usage.
-- Generated HTML currently loads GSAP from a CDN, and HyperFrames CLI usage is not yet version-pinned. Fully offline and reproducible builds require extra dependency work.
+- Generated HTML now includes a locally bundled GSAP file and HyperFrames/GSAP npm dependencies have been pinned with a lockfile. Fully disconnected rendering still requires browser/model/registry cache verification.
 - GitHub Actions consumes compute minutes and artifacts expire; retain finished work outside temporary artifacts.
 - Verify rights and licensing before adding stock footage, graphics, music or voices from external sources.
 - The system does not yet generate elaborate image/3D assets, mix music, align individual spoken words, automatically perform factual research, or upload to social platforms.
 
-**Suggested roadmap:** pin and record exact upstream versions; add versioned GitHub Releases for individual MP4 downloads; implement richer reusable motion templates and visual assets; add word-timed captions/music/sound effects; support alternative narrators (including Greek); and introduce human creative review gates.
+**Suggested roadmap:** verify fully disconnected builds; add versioned GitHub Releases for individual MP4 downloads; implement richer reusable motion templates and visual assets; add word-timed captions/music/sound effects; support alternative narrators (including Greek); and introduce human creative review gates.
 
 ### Reference guides
 
@@ -378,3 +382,6 @@ Expected video dimensions are **1080×1920 portrait** and **1920×1080 landscape
 ---
 
 **One-sentence quick start:** Add `GEMINI_API_KEY` as an Actions secret, [run **AI Video — HyperFrames + Kokoro**](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/workflows/ai-reel.yml) with `provider=gemini`, `model=auto`, and `render_video=true`, then download the Actions ZIP and open the resulting MP4 files in `build/exports/`.
+## Production stabilization (13 November 2026)
+
+On `feature/production-stabilization-v1`, HyperFrames 0.9.37 and GSAP 3.14.2 are pinned using `package.json` and `package-lock.json`. The Python renderer copies the local GSAP runtime into both compositions and requires a non-silent audio track in the final decoded MP4s. A real branch smoke test succeeded with Kokoro-generated speech: [verified GitHub Actions run](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/runs/43407993112). See [the production gates](docs/PRODUCTION_READINESS.md). This does **not** prove live Gemini API access, 15/30/60-second pacing or a fully air-gapped run.

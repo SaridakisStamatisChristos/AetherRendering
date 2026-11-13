@@ -12,7 +12,7 @@ This is an **additive** system. It does not change `src/render.py`, the previous
 4. Leave **render_video** checked to generate Kokoro narration, render both MP4s with HyperFrames and decode-test exports. The first run downloads rendering/TTS models and a browser, which may take considerable time and GitHub Actions minutes.
 5. Download the `AetherRendering-AI-*` artifact from that workflow run. The output is kept by GitHub for up to 90 days; preserve releases separately if needed.
 
-**Status:** The Python scene director, safe HTML compiler and their unit tests were verified locally. The new GitHub Actions workflow, live Gemini calls, Kokoro model inference and HyperFrames MP4 output require a successful workflow run before they may be called tested. The older FFmpeg demo is independently verified but does **not** prove this new pipeline.
+**Status:** AetherRendering has preserved genuine HyperFrames/Kokoro sample MP4s. In November 2026 a production-stabilization CI run also verified real generated narration, portrait/landscape rendering, video decoding and non-silent audio. Live Gemini API generation and fully disconnected execution remain unverified.
 
 ## How code generation works
 
@@ -30,6 +30,8 @@ git clone https://github.com/SaridakisStamatisChristos/AetherRendering.git
 cd AetherRendering
 python3 -m venv .venv && source .venv/bin/activate
 python -m pip install kokoro-onnx soundfile
+export HYPERFRAMES_PYTHON="$(command -v python)"
+npm ci
 python -m unittest discover -s tests -v
 npx --yes hyperframes browser ensure
 python src/ai_director.py --topic "How computers render animations" --provider demo --duration 25
@@ -57,7 +59,7 @@ cd build/hyperframes/vertical && npx --yes hyperframes preview
 - Rendering is **not** fully local if you choose `provider=gemini`, because this invokes a cloud LLM. Kokoro narration and HyperFrames rendering are local on their host.
 - The visual compiler currently supports animated typography and abstract motion graphic ornamentation. It **does not** autonomously generate images, footage, 3D models, or music; these require later adapters and licensing checks.
 - TTS duration wins over estimated script timing; a requested length is a target, not an exact guarantee.
-- Video output from this workflow is verified by `ffprobe` for H.264 size and `ffmpeg` for full decode. Studio visual review is still necessary. `hyperframes lint` runs before render; `hyperframes check` remains a recommended additional quality gate.
+- Video output from the stabilized workflow is verified by `ffprobe` for H.264 size and audio stream, by `ffmpeg` for full decode and by `volumedetect` for audible speech. Studio visual review is still necessary. `hyperframes lint` runs before render; `hyperframes check` remains a recommended additional quality gate.
 - Video templates use system fonts and no external copyrighted assets.
 - Speech languages depend on Kokoro's voice catalog; Greek requires a different narrator backend.
 - Keep secrets out of generated script, logs, HTML, and Git commits. The workflow intentionally requests read-only repository permission and does not publish binaries back to Git history.

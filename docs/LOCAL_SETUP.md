@@ -28,7 +28,7 @@
 - **GPU is optional.** The workflow can render with CPU/software rendering; longer and more complicated scenes are slower. Don't assume a particular render time.
 
 The main local pipeline is:
-`src/ai_director.py` → validated `build/video_plan.json` → `src/hyperframes_pipeline.py` → two HyperFrames compositions + Kokoro WAV audio → `build/exports/vertical.mp4` and `horizontal.mp4`.
+`src/ai_director.py` → validated plan → local pinned HyperFrames + GSAP compositions → Kokoro WAV audio → two verified portrait/landscape MP4s.
 
 **No Gemini API key is needed to test the demo or the render engine.** For original AI-written scripts, you will need one.
 
@@ -86,6 +86,10 @@ source .venv/bin/activate
 
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+# HyperFrames TTS requires this local Python backend:
+python -m pip install kokoro-onnx soundfile
+export HYPERFRAMES_PYTHON="$(command -v python)"
+npm ci
 python --version
 
 # Run offline tests before attempting rendering
@@ -105,12 +109,15 @@ source .venv/bin/activate
 
 python -m pip --version || python -m ensurepip --upgrade
 python -m pip install -r requirements.txt
+python -m pip install kokoro-onnx soundfile
+export HYPERFRAMES_PYTHON="$(command -v python)"
+npm ci
 python -m unittest discover -s tests -v
 ```
 
 You do **not** need to run both Python-environment methods. Use one.
 
-The primary HyperFrames speech flow does **not** require `pip install kokoro` or `pip install kokoro-onnx` locally: the CLI is responsible for its own Kokoro TTS runtime and model assets. The optional `src/kokoro_voice.py` file is a *separate* Python adapter and not part of the main commands in this guide.
+The **HyperFrames CLI requires `pip install kokoro-onnx soundfile`** in the Python environment used by HyperFrames. The CLI remains the one speech interface; this is its internal ONNX backend, not an additional bespoke TTS engine. The optional `src/kokoro_voice.py` file is a *separate* Python adapter and not part of the main commands in this guide.
 
 ## 5. Test HyperFrames and Kokoro
 
@@ -118,16 +125,16 @@ Always run these commands from **AetherRendering's repository root**, with the P
 
 ```bash
 # Validate the external video engine and prepare Chromium
-npx --yes hyperframes info
-npx --yes hyperframes doctor
-npx --yes hyperframes browser ensure
+node_modules/.bin/hyperframes info
+node_modules/.bin/hyperframes doctor
+node_modules/.bin/hyperframes browser ensure
 
 # Show available voices
-npx --yes hyperframes tts --list
+node_modules/.bin/hyperframes tts --list
 
 # Synthesize a small audio test
 mkdir -p build/smoke
-npx --yes hyperframes tts "Welcome to Aether Rendering." \
+node_modules/.bin/hyperframes tts "Welcome to Aether Rendering." \
   --voice af_heart \
   --output build/smoke/narration.wav
 
@@ -136,7 +143,7 @@ ls -lh build/smoke/narration.wav
 ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 build/smoke/narration.wav
 ```
 
-The first speech generation may download voice-model data. The TTS feature operates locally once installed and does **not** need a Gemini key. `npx --yes hyperframes` uses the upstream package published to npm.
+The first speech generation may download voice-model data. The TTS feature operates locally once installed and does **not** need a Gemini key. `node_modules/.bin/hyperframes` uses the upstream package published to npm.
 
 If `doctor` reports missing browser dependencies, follow its output, rerun `browser ensure`, and test again.
 
@@ -247,9 +254,10 @@ python src/ai_director.py \
 python src/hyperframes_pipeline.py \
   --plan build/video_plan.json --out-dir build/hyperframes
 
+HYPERFRAMES_BIN="$(realpath node_modules/.bin/hyperframes)"
 cd build/hyperframes/vertical
-npx --yes hyperframes lint
-npx --yes hyperframes preview
+"$HYPERFRAMES_BIN" lint
+"$HYPERFRAMES_BIN" preview
 ```
 
 The HyperFrames preview server usually opens at `http://localhost:3002`. Use Ctrl+C to stop a foreground preview, then return to the repo root:
@@ -283,7 +291,7 @@ python -m unittest discover -s tests -v
 
 The `~/AetherRendering` path assumes you cloned from your home directory; adjust if you chose a different location.
 
-**Dependency pinning:** The present source invokes `npx --yes hyperframes` without a version pin, so future runs can install a newer CLI. Check `npx --yes hyperframes info` and make a note of the version for a reproducible production campaign. Consider pinning the npm version after your environment has been tested.
+**Dependency pinning:** The present source invokes `node_modules/.bin/hyperframes` without a version pin, so future runs can install a newer CLI. Check `node_modules/.bin/hyperframes info` and make a note of the version for a reproducible production campaign. Consider pinning the npm version after your environment has been tested.
 
 **Don't commit secrets or generated output inadvertently.** Before `git add`/`git commit`, inspect `git status`. Keep your own `build/`, speech WAVs, local usage state and secrets private as appropriate.
 
@@ -295,7 +303,7 @@ The `~/AetherRendering` path assumes you cloned from your home directory; adjust
 | Python virtual environment fails | Use Python ≥3.11 or the uv-managed Python 3.12 alternative above. |
 | `hyperframes browser ensure` fails | Check network, filesystem permissions, disk space, and `npx hyperframes doctor`. |
 | TTS returns no WAV | Run `npx hyperframes tts --list`; verify voice ID, cached model download, and error logs. |
-| Output has no audio | Re-run with **both** `--tts` and `--render`; inspect generated WAV files. |
+| Output has no audio | Re-run with **both** `--tts` and `--render`; confirm the `kokoro-onnx soundfile` Python backend and `HYPERFRAMES_PYTHON`, inspect generated WAVs and `audio_verified` in report.json. |
 | Gemini says no configured model found | Compare `--list-models` output with `config/gemini_router.json`; enable a real, accessible model. |
 | Gemini HTTP 429 | Reduce requests or wait for quota reset; configured fallback cannot bypass project-wide limits. |
 | Missing `build/exports/*.mp4` | Check the command's error output. The pipeline aborts on lint/render/verification failures. |
@@ -309,7 +317,7 @@ The built-in repository smoke test can still be used via [GitHub Actions](https:
 ## 11. Privacy, limits and known gaps
 
 - **Local rendering ≠ offline AI:** When `--provider gemini` is selected, the script and topic go to Google's Gemini API. Demo script generation, Kokoro speech and HyperFrames rendering run locally after their dependencies are downloaded.
-- The current HTML animation source loads a **GSAP runtime from a CDN**, so a fully air-gapped workflow would need additional packaging/vendor changes.
+- The current development branch copies **GSAP from locally installed, pinned npm dependencies** into each composition, rather than loading it from a CDN. A fully disconnected render still requires independent verification of cached browser, voice model and HyperFrames resources.
 - The current system does **not** automatically generate video footage, cinematic 3D objects, music, licensed sound effects, Greek-language TTS, word-aligned captions, or social-platform uploads.
 - FFmpeg's success checks are technical, not an artistic or factual editorial review.
 - Model quota controls are safeguards, not official project quota introspection or a monetary spending limit.
