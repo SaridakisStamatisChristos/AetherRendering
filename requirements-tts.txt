@@ -1,0 +1,5 @@
+# Versions verified by real HyperFrames/Kokoro GitHub CI on 2026-11-13.
+# These packages are REQUIRED by HyperFrames 0.9.37's local TTS CLI.
+# This is a Python backend, not a separate narration implementation.
+kokoro-onnx==0.6.1
+soundfile==0.14.0
