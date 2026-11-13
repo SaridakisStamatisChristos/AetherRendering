@@ -1,0 +1,107 @@
+name: AetherRendering v1.2 — Multi-beat cinematic storytelling at 60 fps
+on:
+  push:
+    branches:
+      - feature/kinetic-storytelling-v1.2
+    paths:
+      - src/kinetic_storytelling.py
+      - src/ai_director.py
+      - src/hyperframes_pipeline.py
+      - tests/test_ai_rendering.py
+      - examples/sky_blue_kinetic_30s.json
+      - .github/workflows/kinetic-storytelling-v1.2.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare local renderer and Kokoro models
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng libsndfile1
+          npm ci --no-audit --no-fund
+          python -m pip install -r requirements-tts.txt
+          echo "HYPERFRAMES_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+          node_modules/.bin/hyperframes browser ensure
+      - name: Validate scenes, safety and all regression tests
+        run: |
+          python -m compileall -q src tests
+          python -m unittest discover -s tests -v
+          python - <<'PY'
+          import json,sys
+          sys.path.insert(0,'src')
+          from ai_director import validate_plan
+          p=validate_plan(json.load(open('examples/sky_blue_kinetic_30s.json',encoding='utf-8')))
+          assert len(p['scenes'])==5
+          assert {s['visual']['type'] for s in p['scenes']} == {'spectrum','particles','orbit','comparison','horizon'}
+          assert all(len(s.get('beats',[]))==3 for s in p['scenes'])
+          print('VALIDATED:',len(p['scenes']),'layered scenes and',sum(len(s['beats']) for s in p['scenes']),'story beats.')
+          PY
+      - name: Generate real 60 fps Kokoro-narrated MP4s
+        run: |
+          python src/hyperframes_pipeline.py \
+            --plan examples/sky_blue_kinetic_30s.json \
+            --out-dir build/kinetic/hyperframes \
+            --voice af_heart --tts --render \
+            --output build/kinetic/exports --fps 60
+      - name: Verify audible video, geometry and 60 fps
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          report=json.loads(Path('build/kinetic/exports/report.json').read_text())
+          assert len(report['outputs'])==2,report
+          for fmt,w,h in [('vertical',1080,1920),('horizontal',1920,1080)]:
+              p=Path('build/kinetic/exports') / (fmt+'.mp4')
+              item=next(x for x in report['outputs'] if Path(x['path']).name==p.name)
+              assert item['audio_verified'] is True and item['full_decode'] is True,item
+              assert 25 <= item['duration'] <= 36,item
+              assert item['mean_volume_db'] > -58,item
+              v=json.loads(subprocess.check_output(['ffprobe','-v','error','-select_streams','v:0',
+                 '-show_entries','stream=avg_frame_rate,nb_frames,width,height','-of','json',str(p)]))['streams'][0]
+              assert (v['width'],v['height']) == (w,h),v
+              numerator,denominator=map(int,v['avg_frame_rate'].split('/'))
+              assert abs(numerator/denominator-60)<0.01,v
+              assert int(v.get('nb_frames',1800)) > 1400,v
+              print(f"VERIFIED {fmt}: {item['duration']:.2f}s, {numerator/denominator:.1f} fps, {item['mean_volume_db']} dB, {p.stat().st_size} bytes")
+          PY
+      - name: Upload full output and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AetherRendering-kinetic-story-60fps
+          retention-days: 90
+          if-no-files-found: warn
+          path: |
+            examples/sky_blue_kinetic_30s.json
+            build/kinetic/hyperframes/resolved_plan.json
+            build/kinetic/exports/*.mp4
+            build/kinetic/exports/report.json
+      - name: Preserve checked real MP4s on feature branch
+        if: success() && github.ref == 'refs/heads/feature/kinetic-storytelling-v1.2'
+        run: |
+          mkdir -p samples/sky-blue-kinetic
+          cp build/kinetic/exports/vertical.mp4 samples/sky-blue-kinetic/portrait-60fps.mp4
+          cp build/kinetic/exports/horizontal.mp4 samples/sky-blue-kinetic/landscape-60fps.mp4
+          cp build/kinetic/exports/report.json samples/sky-blue-kinetic/verification.json
+          cp build/kinetic/hyperframes/resolved_plan.json samples/sky-blue-kinetic/resolved_plan.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add samples/sky-blue-kinetic
+          if ! git diff --cached --quiet; then
+            git commit -m 'demo: preserve genuine 60 fps multi-beat science reel [skip ci]'
+            git pull --rebase origin feature/kinetic-storytelling-v1.2
+            git push origin HEAD:feature/kinetic-storytelling-v1.2
+          fi
