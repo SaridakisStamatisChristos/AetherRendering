@@ -1,6 +1,10 @@
 {
   "input_video": "build/cinematic/exports/horizontal.mp4",
   "sampled_frames": 15,
+  "sample_frame_size": [
+    480,
+    270
+  ],
   "min_change_gate_rgb": 0.4,
   "scenes": [
     {
@@ -13,8 +17,8 @@
         3.495
       ],
       "mean_rgb_deltas": [
-        2.929,
-        2.77
+        3.068,
+        2.904
       ],
       "motion_gate_pass": true
     },
@@ -28,8 +32,8 @@
         9.99
       ],
       "mean_rgb_deltas": [
-        2.154,
-        2.475
+        2.325,
+        2.592
       ],
       "motion_gate_pass": true
     },
@@ -43,8 +47,8 @@
         15.75
       ],
       "mean_rgb_deltas": [
-        3.398,
-        3.778
+        3.486,
+        3.904
       ],
       "motion_gate_pass": true
     },
@@ -58,8 +62,8 @@
         21.563
       ],
       "mean_rgb_deltas": [
-        3.339,
-        3.098
+        3.572,
+        3.371
       ],
       "motion_gate_pass": true
     },
@@ -73,8 +77,8 @@
         28.589
       ],
       "mean_rgb_deltas": [
-        4.514,
-        4.702
+        4.65,
+        4.85
       ],
       "motion_gate_pass": true
     }

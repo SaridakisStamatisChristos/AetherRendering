@@ -4,7 +4,7 @@
   "outputs": [
     {
       "path": "/home/runner/work/AetherRendering/AetherRendering/build/cinematic/exports/vertical.mp4",
-      "size": 9477481,
+      "size": 9465485,
       "duration": 29.833333,
       "full_decode": true,
       "audio_verified": true,
@@ -13,7 +13,7 @@
     },
     {
       "path": "/home/runner/work/AetherRendering/AetherRendering/build/cinematic/exports/horizontal.mp4",
-      "size": 9178794,
+      "size": 9182959,
       "duration": 29.833333,
       "full_decode": true,
       "audio_verified": true,
