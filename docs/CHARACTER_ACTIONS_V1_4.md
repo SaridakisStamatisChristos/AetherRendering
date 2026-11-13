@@ -52,3 +52,18 @@ The dedicated `.github/workflows/character-actions-v1.4.yml` checks Python regre
 ## Limitations and artistic review
 
 The presenter is a reusable vector illustration, not a human video actor or high-detail 3D model. The motions are predefined and approximate rather than true inverse-kinematics grasping. Model-generated scene semantics still require editorial fact-checking. User visual review is required before this branch should be merged into `main`.
+
+## Real rendering verification — 13 November 2026
+
+[Final successful GitHub Actions run](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/runs/43453296273) passed 52 Python tests, rendered **two 32.75-second MP4s** at **60 fps**, measured genuine Kokoro voice audio at −22.6 dB mean (AAC), and verified full FFmpeg decoding, resolution and sound.
+
+| Video | Resolution | Duration | Size |
+|---|---|---|---|
+| [Portrait MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/character-actions-v1.4/samples/solar-power-v1.4/portrait-60fps.mp4) | 1080×1920 | 32.75 seconds | 10,517,354 bytes |
+| [Landscape MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/character-actions-v1.4/samples/solar-power-v1.4/landscape-60fps.mp4) | 1920×1080 | 32.75 seconds | 10,288,443 bytes |
+
+**Motion proof:** [Portrait contact sheet](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/character-actions-v1.4/samples/solar-power-v1.4/contact_sheet.png) and [landscape contact sheet](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/character-actions-v1.4/samples/solar-power-v1.4/contact_sheet_landscape.png) contain three sampled frames from each of five scenes (30 samples total), with nonzero frame change measured for every scene in both formats.
+
+**Visual repair:** The first technically valid sample exposed a real composition problem: object icons left their flow-node positions, and a lamp close-up shifted out of its focal area. The root cause was animating scale and translation on the same SVG group. The final version uses an unanimated outer translation anchor and applies GSAP to an inner group. The repaired videos were rendered again, and both contact sheets visually inspected to confirm that the objects stay placed correctly. Three regression tests protect against this recurrence.
+
+The video is a **stylized procedural 2D animation**; presenter limbs use predefined joints, not character physics, inverse kinematics or a full 3D rig. This is a reusable engine milestone, not yet a professional animation film. Keep it in the separate development branch until its illustration style is accepted.
