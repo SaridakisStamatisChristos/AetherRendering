@@ -1,0 +1,101 @@
+{
+  "topic": "How solar power becomes light",
+  "accent": "#6BCBE9",
+  "scenes": [
+    {
+      "title": "MEET THE SOLAR PANEL",
+      "subtitle": "A rooftop can collect sunlight.",
+      "narration": "Sunlight carries energy. Solar panels capture it without burning fuel, turning rooftops into small power stations.",
+      "duration": 7.646,
+      "motion": "rise",
+      "visual": {
+        "type": "character_stage",
+        "prop": "solar_panel",
+        "action": "point",
+        "camera": "wide"
+      },
+      "beats": [
+        "Sunlight brings energy",
+        "Panels capture the light",
+        "No fuel needs to burn"
+      ]
+    },
+    {
+      "title": "ENERGY ON THE MOVE",
+      "subtitle": "From the Sun to an electrical circuit.",
+      "narration": "Inside each panel, light frees electrons in semiconductor cells, creating electric current that moves through wiring.",
+      "duration": 7.795,
+      "motion": "slide",
+      "visual": {
+        "type": "object_chain",
+        "items": [
+          "sun",
+          "solar_panel",
+          "battery",
+          "lamp"
+        ],
+        "camera": "pan_right"
+      },
+      "beats": [
+        "Photons hit solar cells",
+        "Electrons begin moving",
+        "Current flows through wires"
+      ]
+    },
+    {
+      "title": "USE IT OR SAVE IT",
+      "subtitle": "Control and store the current.",
+      "narration": "An inverter makes the electricity usable at home. Batteries can store some energy for later.",
+      "duration": 5.854,
+      "motion": "zoom",
+      "visual": {
+        "type": "character_stage",
+        "prop": "battery",
+        "action": "operate",
+        "camera": "push_in"
+      },
+      "beats": [
+        "Convert power for the home",
+        "Use energy when needed",
+        "Store some for later"
+      ]
+    },
+    {
+      "title": "TURN ON THE LIGHT",
+      "subtitle": "Electricity changes into illumination.",
+      "narration": "Switch on a lamp, and electrical energy becomes light, with some also released as heat.",
+      "duration": 5.534,
+      "motion": "pop",
+      "visual": {
+        "type": "product_focus",
+        "prop": "lamp",
+        "camera": "detail"
+      },
+      "beats": [
+        "Electricity reaches the lamp",
+        "The lamp produces light",
+        "Some energy becomes heat"
+      ]
+    },
+    {
+      "title": "ONE CONNECTED STORY",
+      "subtitle": "Energy is transformed, not created.",
+      "narration": "From sunlight through panels, wires, and storage to a bright room, energy keeps changing form.",
+      "duration": 5.918,
+      "motion": "rotate",
+      "visual": {
+        "type": "character_stage",
+        "prop": "lamp",
+        "action": "celebrate",
+        "camera": "pan_left"
+      },
+      "beats": [
+        "Sunlight starts the chain",
+        "Devices transfer the energy",
+        "The room lights up"
+      ]
+    }
+  ],
+  "resolved_duration_seconds": 32.747,
+  "voice": "af_heart"
+}

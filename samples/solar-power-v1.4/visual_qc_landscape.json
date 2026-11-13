@@ -1,0 +1,88 @@
+{
+  "input_video": "build/actions14/exports/horizontal.mp4",
+  "sampled_frames": 15,
+  "sample_frame_size": [
+    480,
+    270
+  ],
+  "min_change_gate_rgb": 0.4,
+  "scenes": [
+    {
+      "scene": 1,
+      "title": "MEET THE SOLAR PANEL",
+      "duration_seconds": 7.646,
+      "frames_seconds": [
+        1.3,
+        3.899,
+        6.346
+      ],
+      "mean_rgb_deltas": [
+        1.518,
+        1.609
+      ],
+      "motion_gate_pass": true
+    },
+    {
+      "scene": 2,
+      "title": "ENERGY ON THE MOVE",
+      "duration_seconds": 7.795,
+      "frames_seconds": [
+        8.971,
+        11.621,
+        14.116
+      ],
+      "mean_rgb_deltas": [
+        3.66,
+        3.654
+      ],
+      "motion_gate_pass": true
+    },
+    {
+      "scene": 3,
+      "title": "USE IT OR SAVE IT",
+      "duration_seconds": 5.854,
+      "frames_seconds": [
+        16.436,
+        18.427,
+        20.3
+      ],
+      "mean_rgb_deltas": [
+        3.18,
+        3.515
+      ],
+      "motion_gate_pass": true
+    },
+    {
+      "scene": 4,
+      "title": "TURN ON THE LIGHT",
+      "duration_seconds": 5.534,
+      "frames_seconds": [
+        22.236,
+        24.117,
+        25.888
+      ],
+      "mean_rgb_deltas": [
+        2.214,
+        2.626
+      ],
+      "motion_gate_pass": true
+    },
+    {
+      "scene": 5,
+      "title": "ONE CONNECTED STORY",
+      "duration_seconds": 5.918,
+      "frames_seconds": [
+        27.835,
+        29.847,
+        31.741
+      ],
+      "mean_rgb_deltas": [
+        3.468,
+        3.229
+      ],
+      "motion_gate_pass": true
+    }
+  ],
+  "all_scenes_change": true,
+  "contact_sheet": "build/actions14/visual_qc_landscape/contact_sheet.png"
+}
