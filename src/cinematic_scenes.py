@@ -113,7 +113,7 @@ def perception(i, start, duration):
                         f'font-weight="800" fill="{color}" font-size="26">{label}</text>')
         actions.append(tween(f"#{name}","{opacity:0,scaleX:0}",
                              f"{{opacity:{strength:.2f},scaleX:1,transformOrigin:'left center',"
-                             "duration:.85,ease:'power2.out'}}",at(.15+n*.18)))
+                             "duration:.85,ease:'power2.out'}",at(.15+n*.18)))
         actions.append(tween(f"#{label_id}","{opacity:0,x:-22}",
                              f"{{opacity:1,x:0,duration:.5,ease:'power2.out'}}",at(.12+n*.18)))
         actions.append(tween(f"#{prefix}-source-{n}","{opacity:0,scale:.4}",

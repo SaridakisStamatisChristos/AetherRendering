@@ -269,6 +269,7 @@ class CinematicScenesTests(unittest.TestCase):
         self.assertIn('PERCEIVED COLOR',doc)
         self.assertNotIn('cdn.jsdelivr.net',doc)
         self.assertGreater(doc.count('tl.fromTo('),30)
+        self.assertNotIn("duration:.85,ease:'power2.out'}},",doc)
 
     def test_unknown_visual_still_rejected(self):
         plan=demo_plan('Invalid visual',15)
