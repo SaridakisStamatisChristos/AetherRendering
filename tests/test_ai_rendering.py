@@ -237,7 +237,7 @@ class KineticStorytellingTests(unittest.TestCase):
 
     def test_reject_malformed_beats(self):
         bad=[['one'],['1','2','3','4','5'],['valid', ''],['valid', 'x'*67],
-             ['valid', 7],['valid', '\\ncontrol']]
+             ['valid', 7],['valid', chr(10) + 'control']]
         for beats in bad:
             with self.subTest(beats=beats):
                 plan=demo_plan('Invalid', 15)
