@@ -18,6 +18,7 @@ import sys
 
 from ai_director import validate_plan
 from visual_scenes import visual_scene
+from action_scenes import ACTION_TYPES
 from kinetic_storytelling import compile_beats, visual_follow_through, compile_cut
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -97,7 +98,9 @@ def build_html(plan, format_name, voice_files, fps=30):
         secondary_tweens = visual_follow_through(scene, i, start, duration)
         cut_html = f'<div class="scene-veil" id="scene-veil-{i}"></div>' if beats_html else ''
         cut_tweens = compile_cut(i, start, duration) if beats_html else ''
-        scene_class = 'scene rich' if visual_html else 'scene'
+        visual_type = (scene.get('visual') or {}).get('type')
+        scene_class = ('scene rich action' if visual_type in ACTION_TYPES
+                       else 'scene rich' if visual_html else 'scene')
         # Optional motion presets become deterministic, seekable GSAP tweens.
         motion = scene.get('motion', 'rise')
         enters = {
@@ -154,6 +157,9 @@ footer{{font-size:23px;letter-spacing:2px;text-transform:uppercase;display:flex;
 .scene.rich h1{{font-size:{77 if vertical else 72}px;letter-spacing:-1px;margin:0 0 14px;line-height:1.04;text-shadow:0 3px 20px #071423}}
 .scene.rich .subtitle{{font-size:{30 if vertical else 32}px;margin:0;line-height:1.25;text-shadow:0 2px 8px #071423}}
 .scene.rich footer{{margin-top:auto}}
+/* New bounded action illustrations: modest scale-up with safe visual margins.
+   Camera presets move the OUTER stage, leaving inner props anchored in SVG. */
+.scene.rich.action .visual-stage svg{{transform:scale(1.10);transform-origin:center center}}
 /* Beat strips appear only for new storyboards that explicitly request them.
    Each phrase has its own seekable GSAP enter/hold/exit timeline. */
 .beat-stage{{position:absolute;z-index:5;left:{100 if vertical else 170}px;right:{100 if vertical else 170}px;top:{1240 if vertical else 685}px;height:{145 if vertical else 90}px;pointer-events:none}}

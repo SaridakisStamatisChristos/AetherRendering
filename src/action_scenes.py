@@ -118,8 +118,11 @@ def _prop(name, index, identifier, x, y, scale=1):
           '<path d="M1 -25 L87 -64 V63 L1 108Z" fill="#E3BB88"/>'
           '<path d="M1 -25 V108" stroke="#F7D9AD" stroke-width="6"/>'),
     }[name]
-    return (f'<g id="{identifier}" transform="translate({x} {y}) scale({scale:.3f})">'
-            f'{art}</g>')
+    # Anchor position lives in a NON-animated outer group. GSAP may replace
+    # the inner group's transform; it must never remove the object's placement.
+    return (f'<g class="prop-anchor" transform="translate({x} {y})">'
+            f'<g id="{identifier}" transform="scale({scale:.3f})">'
+            f'{art}</g></g>')
 
 
 def _character(index):

@@ -396,5 +396,33 @@ class CharacterAndActionTests(unittest.TestCase):
                 self.assertIn("visual-stage-1",events)
                 self.assertIn('duration:6.000',events)
 
+
+class PropAnchorRegressionTests(unittest.TestCase):
+    def test_prop_anchor_does_not_get_overwritten_by_gsap(self):
+        from action_scenes import render_action
+        body,tweens=render_action(
+            {'type':'object_chain','items':['sun','solar_panel','battery','lamp']},1,0.0,6.0)
+        self.assertIn('class="prop-anchor" transform="translate(150 305)"',body)
+        self.assertIn('id="chain-1-0" transform="scale(0.620)"',body)
+        self.assertIn('class="prop-anchor" transform="translate(850 305)"',body)
+        self.assertIn('id="chain-1-3" transform="scale(0.620)"',body)
+        self.assertIn("tl.fromTo('#chain-1-3'",tweens)
+
+    def test_lamp_focus_retains_position_through_scale_animation(self):
+        from action_scenes import render_action
+        body,tweens=render_action({'type':'product_focus','prop':'lamp'},0,0.0,6.0)
+        self.assertIn('class="prop-anchor" transform="translate(500 339)"',body)
+        self.assertIn('id="focus-0" transform="scale(1.700)"',body)
+        self.assertIn("tl.fromTo('#focus-0'",tweens)
+
+    def test_action_illustrations_have_separate_styling(self):
+        plan=demo_plan('Action scene',15)
+        plan['scenes'][0]['visual']={'type':'character_stage','prop':'gear','action':'point'}
+        validate_plan(plan)
+        page=build_html(plan,'vertical',[(None,5)]*3)
+        self.assertIn('id="scene-0" class="clip scene rich action"',page)
+        self.assertIn('transform:scale(1.10)',page)
+        self.assertIn('id="scene-1" class="clip scene"',page)
+
 if __name__ == '__main__':
     unittest.main()
