@@ -70,6 +70,8 @@ The existing five illustration types, Gemini router, Kokoro narration, portrait/
 ]
 ```
 
+[Download the real 29.83-second portrait MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/kinetic-storytelling-v1.2/samples/sky-blue-kinetic/portrait-60fps.mp4) or [landscape MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/kinetic-storytelling-v1.2/samples/sky-blue-kinetic/landscape-60fps.mp4); [GitHub 60 fps CI passed](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/runs/43416014661) with 36 tests. Both files include actual Kokoro narration. The result remains on the feature branch pending visual review.
+
 Try the enhanced science example at `examples/sky_blue_kinetic_30s.json`, or view [v1.2 feature documentation](docs/KINETIC_STORYTELLING_V1_2.md). Its [GitHub CI workflow](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/workflows/kinetic-storytelling-v1.2.yml) verifies the generated 60 fps narrated MP4. This is **not** word-aligned transcription: micro-beats are proportionally timed to measured Kokoro speech segments.
 
 ## How the system works

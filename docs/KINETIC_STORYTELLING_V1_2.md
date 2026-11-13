@@ -42,3 +42,14 @@ A dedicated GitHub Actions workflow must pass the full 30-second narration, 1080
 ## Still outside scope
 
 No full 3D character rigs, scene-specific generated images, genuine word timing, audio-driven mouth animation or advanced cinematic footage. These are future integrations with AetherMotion and AetherPaper, not claims for this branch.
+
+## Executed verification — 13 November 2026
+
+The full GitHub Actions pipeline [passed](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/runs/43416014661). The run executed **36 passing Python regression tests**, generated genuine local Kokoro narration, rendered both formats at **60 fps**, verified actual video frame rates and audio, and preserved real MP4s on the feature branch.
+
+| Output | Duration | Resolution | Frame rate | Mean AAC narration level | File size |
+|---|---:|---|---:|---:|---:|
+| [Portrait MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/kinetic-storytelling-v1.2/samples/sky-blue-kinetic/portrait-60fps.mp4) | 29.83 s | 1080×1920 | 60 fps | −22.7 dB | 9.1 MB |
+| [Landscape MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/kinetic-storytelling-v1.2/samples/sky-blue-kinetic/landscape-60fps.mp4) | 29.83 s | 1920×1080 | 60 fps | −22.7 dB | 8.7 MB |
+
+All files passed FFmpeg full decoding. The saved [verification report](../samples/sky-blue-kinetic/verification.json) is reproducible evidence of technical correctness. This does not yet certify artistic quality, natural language synchronization or readiness to merge.
