@@ -41,3 +41,17 @@ python src/hyperframes_pipeline.py --plan examples/sky_blue_rich_30s.json \
 The default remains 30 fps, and `--fps 60` now updates both composition metadata and HyperFrames rendering rate. Run the branch workflow `visual-scenes-v1.1.yml` for a genuine 60 fps, Kokoro narrated portrait and landscape comparison sample. Watch the video for artistic quality; passing codec/audio checks alone cannot certify it.
 
 **Not yet built:** imported photos/footage, lip-sync character rigs, shot transition editing, music/SFX, word-level captions, and integrated AetherMotion/AetherPaper adapters.
+
+## Real execution evidence — verified 13 November 2026
+
+[Successful GitHub Actions run](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/runs/43413982958) established:
+- **30 Python tests passing**, including legacy compatibility, strict visual config and comparison-input safety.
+- **29.83-second** portrait video, 1080 × 1920, **60 fps**, AAC audio mean −22.7 dB.
+- **29.83-second** landscape video, 1920 × 1080, **60 fps**, AAC audio mean −22.7 dB.
+- Both files passed full FFmpeg decoding and were committed on the experimental feature branch.
+
+[Download enhanced portrait MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/visual-scenes-v1.1/samples/sky-blue-rich/portrait-60fps.mp4)
+
+[Download enhanced landscape MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/visual-scenes-v1.1/samples/sky-blue-rich/landscape-60fps.mp4)
+
+This establishes that the richer video renders correctly. It does **not** establish editorial/artistic approval. The feature has not been merged into main pending visual review.

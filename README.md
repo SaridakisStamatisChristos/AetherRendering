@@ -53,7 +53,7 @@ python src/hyperframes_pipeline.py --plan examples/sky_blue_rich_30s.json \
   --output build/rich/exports
 ```
 
-**Verification:** The real 60 fps, two-format render runs in the dedicated `visual-scenes-v1.1.yml` GitHub workflow; see the [visual scenes guide](docs/VISUAL_SCENES_V1_1.md). This is a development preview until that workflow passes and the resulting video is visually reviewed. The stable `main` branch is unchanged.
+**Verification:** The real 60 fps, two-format render runs in the dedicated `visual-scenes-v1.1.yml` GitHub workflow; see the [visual scenes guide](docs/VISUAL_SCENES_V1_1.md). The dedicated real render [passed in GitHub Actions](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/runs/43413982958): 30 Python tests; two 29.83-second exports at 60 fps with real Kokoro narration, AAC audio and full decoding. [Download portrait MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/visual-scenes-v1.1/samples/sky-blue-rich/portrait-60fps.mp4) or [landscape MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/visual-scenes-v1.1/samples/sky-blue-rich/landscape-60fps.mp4). Artistic review is still required; stable `main` is unchanged.
 
 ## How the system works
 
