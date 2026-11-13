@@ -64,7 +64,7 @@ def examine(video, resolved_plan, output, min_change=0.40):
             x=margin+j*(FRAME_SIZE[0]+space)
             y=margin+i*row_height+header
             sheet.paste(frame,(x,y))
-            draw.text((x,y-header+7), f'{i+1:02d} • {int(FRACTIONS[j]*100)}% • {scene["title"][:17]}',
+            draw.text((x,y-header+7), f'{i+1:02d} - {int(FRACTIONS[j]*100)}% - {scene["title"][:17]}',
                       fill='#DDEFFD',font=font)
         offset += duration
     contact_sheet = target/'contact_sheet.png'
