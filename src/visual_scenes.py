@@ -8,8 +8,9 @@ import html
 import math
 from cinematic_scenes import CINEMATIC_TYPES, render_cinematic
 from action_scenes import ACTION_TYPES, render_action
+from kinematic_actions import KINEMATIC_TYPES, render_kinematic
 
-VISUAL_TYPES = frozenset({"spectrum", "particles", "orbit", "comparison", "horizon"}) | CINEMATIC_TYPES | ACTION_TYPES
+VISUAL_TYPES = frozenset({"spectrum", "particles", "orbit", "comparison", "horizon"}) | CINEMATIC_TYPES | ACTION_TYPES | KINEMATIC_TYPES
 
 
 def _tween(selector, source, dest, at):
@@ -34,6 +35,9 @@ def visual_scene(scene, index, start, seconds):
     if config is None:
         return "", ""
     mode = config["type"]
+    if mode in KINEMATIC_TYPES:
+        illustration, events = render_kinematic(config, index, start, seconds)
+        return _svg(illustration, index), events
     if mode in ACTION_TYPES:
         illustration, events = render_action(config, index, start, seconds)
         return _svg(illustration, index), events

@@ -424,5 +424,95 @@ class PropAnchorRegressionTests(unittest.TestCase):
         self.assertIn('transform:scale(1.10)',page)
         self.assertIn('id="scene-1" class="clip scene"',page)
 
+
+class InverseKinematicsTests(unittest.TestCase):
+    def test_limb_lengths_preserved_at_all_contact_poses(self):
+        from kinematic_actions import (solve_ik, SHOULDER, ARM_LENGTHS,
+                                       HAND_REST, HAND_CONTACT, HAND_CARRY, HAND_INSPECT)
+        import math
+        for hand in (HAND_REST,HAND_CONTACT,HAND_CARRY,HAND_INSPECT):
+            elbow=solve_ik(SHOULDER,hand,*ARM_LENGTHS)
+            self.assertAlmostEqual(math.dist(SHOULDER,elbow),ARM_LENGTHS[0],places=5)
+            self.assertAlmostEqual(math.dist(elbow,hand),ARM_LENGTHS[1],places=5)
+
+    def test_unreachable_target_rejected(self):
+        from kinematic_actions import solve_ik,SHOULDER,ARM_LENGTHS
+        for target in ((1200,200),SHOULDER,(float('nan'),300)):
+            with self.subTest(target=target),self.assertRaisesRegex(ValueError,"Unreachable"):
+                solve_ik(SHOULDER,target,*ARM_LENGTHS)
+
+    def test_correct_contact_to_lift_offsets(self):
+        from kinematic_actions import (HAND_CONTACT,HAND_CARRY,PROP_LIFT)
+        self.assertEqual((round(HAND_CARRY[0]-HAND_CONTACT[0]),
+                          round(HAND_CARRY[1]-HAND_CONTACT[1])),PROP_LIFT)
+
+    def test_all_behaviors_have_hand_pose_and_prop_anchor(self):
+        from kinematic_actions import render_kinematic, BEHAVIORS
+        for behavior in BEHAVIORS:
+            with self.subTest(behavior=behavior):
+                config={"type":"kinematic_stage","prop":"battery","behavior":behavior}
+                body,motion=render_kinematic(config,0,6.,6.)
+                self.assertIn('id="ik-arm-0-upper"',body)
+                self.assertIn('id="ik-arm-0-lower"',body)
+                self.assertIn('id="ik-arm-0-hand"',body)
+                self.assertIn('id="prop-mover-0"',body)
+                self.assertIn('class="prop-anchor"',body)
+                self.assertIn("tl.fromTo('#visual-stage-0'",motion)
+                self.assertIn('duration',motion)
+
+    def test_walk_has_foot_ik_and_translating_actor(self):
+        from kinematic_actions import render_kinematic
+        body, motion=render_kinematic(
+            {"type":"kinematic_stage","prop":"box","behavior":"walk_to"},1,5.,7.)
+        self.assertIn('id="ik-leg-1-left-upper"',body)
+        self.assertIn('id="ik-leg-1-right-lower"',body)
+        self.assertIn("tl.fromTo('#walking-actor-1'",motion)
+        self.assertIn("tl.fromTo('#ik-leg-1-left-upper'",motion)
+        self.assertIn('"attr"',motion)
+
+    def test_pickup_object_moves_in_same_time_window_as_hand(self):
+        from kinematic_actions import render_kinematic
+        _,motion=render_kinematic(
+            {"type":"kinematic_stage","prop":"battery","behavior":"pick_up"},2,0.,8.)
+        self.assertIn("tl.fromTo('#prop-mover-2'",motion)
+        # Wrist and carried prop share the .52-.71 scene interval.
+        self.assertIn(",4.160);",motion)
+        self.assertIn('x:-40.000,y:-75.000',motion)
+
+    def test_unsafe_kinematic_data_fails_before_compile(self):
+        from kinematic_actions import BEHAVIORS
+        for config in (
+                {'type':'kinematic_stage','prop':'javascript','behavior':'pick_up'},
+                {'type':'kinematic_stage','prop':'box','behavior':'exec'},
+                {'type':'kinematic_stage','prop':'box','behavior':'pick_up','camera':'eval'},
+                {'type':'kinematic_stage','prop':'box','behavior':'pick_up','script':'alert(1)'}):
+            plan=demo_plan("Invalid action",15)
+            plan['scenes'][0]['visual']=config
+            with self.subTest(config=config),self.assertRaises(ValueError):
+                validate_plan(plan)
+
+    def test_legacy_action_scene_still_compiles(self):
+        plan=demo_plan('Legacy action',15)
+        plan['scenes'][0]['visual']={'type':'character_stage','prop':'lamp',
+                                    'action':'point','camera':'wide'}
+        validate_plan(plan)
+        page=build_html(plan,'vertical',[(None,5)]*3)
+        self.assertIn('id="actor-0-arm-right"',page)
+        self.assertNotIn('id="ik-arm-0-upper"',page)
+
+    def test_renderer_handles_kinematic_stage_in_two_video_formats(self):
+        plan=demo_plan('Physical storytelling',15)
+        plan['scenes'][0]['visual']={'type':'kinematic_stage',
+                                   'prop':'battery','behavior':'pick_up','camera':'push_in'}
+        plan['scenes'][0]['beats']=['Reach','Grasp','Lift']
+        validate_plan(plan)
+        for fmt in FORMATS:
+            page=build_html(plan,fmt,[(None,5)]*3,fps=60)
+            self.assertIn('id="ik-arm-0-upper"',page)
+            self.assertIn('id="prop-mover-0"',page)
+            self.assertIn('data-fps="60"',page)
+            self.assertIn('id="beat-0-2"',page)
+            self.assertNotIn('cdn.jsdelivr.net',page)
+
 if __name__ == '__main__':
     unittest.main()
