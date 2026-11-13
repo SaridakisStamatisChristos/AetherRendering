@@ -1,0 +1,81 @@
+{
+  "topic": "Why the sky is blue",
+  "accent": "#4CE0C1",
+  "scenes": [
+    {
+      "title": "WHY THE SKY IS BLUE",
+      "subtitle": "The color starts with white sunlight.",
+      "narration": "Sunlight looks white, but it is a mixture of all the colors we can see.",
+      "duration": 6,
+      "motion": "rise",
+      "visual": {
+        "type": "spectrum"
+      },
+      "beats": [
+        "Sunlight carries every color",
+        "A prism reveals the spectrum",
+        "White light becomes a rainbow"
+      ]
+    },
+    {
+      "title": "LIGHT MEETS AIR",
+      "subtitle": "Tiny molecules redirect incoming light.",
+      "narration": "In the atmosphere, small molecules scatter short blue wavelengths much more strongly than longer red wavelengths.",
+      "duration": 6,
+      "motion": "slide",
+      "visual": {
+        "type": "particles"
+      },
+      "beats": [
+        "Sunlight enters the atmosphere",
+        "Molecules scatter blue more strongly",
+        "Red wavelengths scatter less"
+      ]
+    },
+    {
+      "title": "BLUE FROM EVERYWHERE",
+      "subtitle": "Scattered blue light fills the sky.",
+      "narration": "That blue light spreads in every direction and reaches our eyes from across the sky above us.",
+      "duration": 6,
+      "motion": "zoom",
+      "visual": {
+        "type": "sky_dome"
+      },
+      "beats": [
+        "Blue photons scatter in the air",
+        "They approach from many directions",
+        "Our eyes see a sky-wide blue glow"
+      ]
+    },
+    {
+      "title": "BUT WHY NOT VIOLET?",
+      "subtitle": "Our vision favors the blue we notice.",
+      "narration": "Violet scatters even more, but sunlight has less of it, and our eyes respond less strongly.",
+      "duration": 6,
+      "motion": "rotate",
+      "visual": {
+        "type": "perception"
+      },
+      "beats": [
+        "Violet scatters very strongly",
+        "The spectrum and our eyes also matter",
+        "Together, we perceive a blue sky"
+      ]
+    },
+    {
+      "title": "THE SUNSET TWIST",
+      "subtitle": "Longer paths reveal warmer colors.",
+      "narration": "At sunset, sunlight travels through more air. More blue scatters away, leaving brilliant orange and red colors.",
+      "duration": 6,
+      "motion": "pop",
+      "visual": {
+        "type": "horizon"
+      },
+      "beats": [
+        "Sunlight crosses more atmosphere",
+        "Much blue light scatters away",
+        "Warm reds and oranges dominate"
+      ]
+    }
+  ]
+}

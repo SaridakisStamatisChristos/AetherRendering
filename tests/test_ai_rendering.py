@@ -254,5 +254,39 @@ class KineticStorytellingTests(unittest.TestCase):
         self.assertIn('7.',long)
         self.assertNotIn('7.',short)
 
+
+class CinematicScenesTests(unittest.TestCase):
+    def test_safe_cinematic_visuals_have_multiple_timed_events(self):
+        plan=demo_plan('Rayleigh scattering',25)
+        plan['scenes'][0]['visual']={'type':'sky_dome'}
+        plan['scenes'][1]['visual']={'type':'perception'}
+        validate_plan(plan)
+        doc=build_html(plan,'vertical',[(None,5)]*5,fps=60)
+        self.assertIn('v-0-ray-4',doc)
+        self.assertIn('v-1-channel-2',doc)
+        self.assertIn('v-1-response',doc)
+        self.assertIn('YOUR EYES',doc)
+        self.assertIn('PERCEIVED COLOR',doc)
+        self.assertNotIn('cdn.jsdelivr.net',doc)
+        self.assertGreater(doc.count('tl.fromTo('),30)
+
+    def test_unknown_visual_still_rejected(self):
+        plan=demo_plan('Invalid visual',15)
+        plan['scenes'][0]['visual']={'type':'anything'}
+        with self.assertRaisesRegex(ValueError,'invalid visual type'):
+            validate_plan(plan)
+
+    def test_cinematic_configuration_remains_strict(self):
+        plan=demo_plan('Safety',15)
+        plan['scenes'][0]['visual']={'type':'perception','labels':['not allowed']}
+        with self.assertRaisesRegex(ValueError,'unsupported visual configuration'):
+            validate_plan(plan)
+
+    def test_old_visuals_remain_available(self):
+        for visual in ('spectrum','particles','orbit','comparison','horizon'):
+            self.assertIn(visual,VISUAL_TYPES)
+        self.assertIn('sky_dome', VISUAL_TYPES)
+        self.assertIn('perception', VISUAL_TYPES)
+
 if __name__ == '__main__':
     unittest.main()
