@@ -4,15 +4,21 @@
   "outputs": [
     {
       "path": "/home/runner/work/AetherRendering/AetherRendering/build/exports/vertical.mp4",
-      "size": 1232134,
+      "size": 1228757,
       "duration": 9.166667,
-      "full_decode": true
+      "full_decode": true,
+      "audio_verified": true,
+      "audio_codec": "aac",
+      "mean_volume_db": -23.1
     },
     {
       "path": "/home/runner/work/AetherRendering/AetherRendering/build/exports/horizontal.mp4",
-      "size": 1269833,
+      "size": 1274545,
       "duration": 9.166667,
-      "full_decode": true
+      "full_decode": true,
+      "audio_verified": true,
+      "audio_codec": "aac",
+      "mean_volume_db": -23.1
     }
   ]
 }
