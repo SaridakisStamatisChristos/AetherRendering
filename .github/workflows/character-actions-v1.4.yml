@@ -1,0 +1,142 @@
+name: AetherRendering v1.4 — Character and object action scenes
+on:
+  push:
+    branches:
+      - feature/character-actions-v1.4
+    paths:
+      - src/action_scenes.py
+      - src/visual_qc.py
+      - src/kinetic_storytelling.py
+      - src/ai_director.py
+      - src/hyperframes_pipeline.py
+      - tests/test_ai_rendering.py
+      - examples/solar_power_actions_30s.json
+      - .github/workflows/character-actions-v1.4.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: aether-actions-v14-branch
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare local renderer and Kokoro models
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng libsndfile1
+          npm ci --no-audit --no-fund
+          python -m pip install -r requirements-tts.txt
+          python -m pip install -r requirements.txt
+          echo "HYPERFRAMES_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+          node_modules/.bin/hyperframes browser ensure
+      - name: Validate scenes, safety and all regression tests
+        run: |
+          python -m compileall -q src tests
+          python -m unittest discover -s tests -v
+          python - <<'PY'
+          import json,sys
+          sys.path.insert(0,'src')
+          from ai_director import validate_plan
+          p=validate_plan(json.load(open('examples/solar_power_actions_30s.json',encoding='utf-8')))
+          assert len(p['scenes'])==5
+          assert [s['visual']['type'] for s in p['scenes']] == ['character_stage','object_chain','character_stage','product_focus','character_stage']
+          assert all(len(s.get('beats',[]))==3 for s in p['scenes'])
+          assert [s['visual'].get('camera') for s in p['scenes']] == ['wide','pan_right','push_in','detail','pan_left']
+          print('VALIDATED:',len(p['scenes']),'animated scenes and',sum(len(s['beats']) for s in p['scenes']),'story beats, 5 camera views.')
+          PY
+      - name: Generate real 60 fps Kokoro-narrated MP4s
+        run: |
+          python src/hyperframes_pipeline.py \
+            --plan examples/solar_power_actions_30s.json \
+            --out-dir build/actions14/hyperframes \
+            --voice af_heart --tts --render \
+            --output build/actions14/exports --fps 60
+      - name: Verify audible video, geometry and 60 fps
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          report=json.loads(Path('build/actions14/exports/report.json').read_text())
+          assert len(report['outputs'])==2,report
+          for fmt,w,h in [('vertical',1080,1920),('horizontal',1920,1080)]:
+              p=Path('build/actions14/exports') / (fmt+'.mp4')
+              item=next(x for x in report['outputs'] if Path(x['path']).name==p.name)
+              assert item['audio_verified'] is True and item['full_decode'] is True,item
+              assert 25 <= item['duration'] <= 36,item
+              assert item['mean_volume_db'] > -58,item
+              v=json.loads(subprocess.check_output(['ffprobe','-v','error','-select_streams','v:0',
+                 '-show_entries','stream=avg_frame_rate,nb_frames,width,height','-of','json',str(p)]))['streams'][0]
+              assert (v['width'],v['height']) == (w,h),v
+              numerator,denominator=map(int,v['avg_frame_rate'].split('/'))
+              assert abs(numerator/denominator-60)<0.01,v
+              assert int(v.get('nb_frames',1800)) > 1400,v
+              print(f"VERIFIED {fmt}: {item['duration']:.2f}s, {numerator/denominator:.1f} fps, {item['mean_volume_db']} dB, {p.stat().st_size} bytes")
+          PY
+      - name: Extract representative frames and quantify visual change
+        run: |
+          python src/visual_qc.py --video build/actions14/exports/vertical.mp4 \
+            --resolved-plan build/actions14/hyperframes/resolved_plan.json \
+            --output build/actions14/visual_qc
+          python src/visual_qc.py --video build/actions14/exports/horizontal.mp4 \
+            --resolved-plan build/actions14/hyperframes/resolved_plan.json \
+            --output build/actions14/visual_qc_landscape
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('build/actions14/visual_qc/visual_qc.json').read_text())
+          assert data['all_scenes_change'] is True, data
+          assert data['sampled_frames']==15, data
+          assert Path('build/actions14/visual_qc/contact_sheet.png').is_file()
+          land=json.loads(Path('build/actions14/visual_qc_landscape/visual_qc.json').read_text())
+          assert land['all_scenes_change'] is True, land
+          assert land['sampled_frames']==15, land
+          assert Path('build/actions14/visual_qc_landscape/contact_sheet.png').is_file()
+          print("VERIFIED:",data['sampled_frames']+land['sampled_frames'],"real video frames sampled across both formats; all scenes change")
+          PY
+      - name: Upload full output and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AetherRendering-action-scenes-60fps
+          retention-days: 90
+          if-no-files-found: warn
+          path: |
+            examples/solar_power_actions_30s.json
+            build/actions14/hyperframes/resolved_plan.json
+            build/actions14/exports/*.mp4
+            build/actions14/exports/report.json
+            build/actions14/visual_qc/**
+            build/actions14/visual_qc_landscape/**
+      - name: Preserve checked real MP4s on feature branch
+        if: success() && github.ref == 'refs/heads/feature/character-actions-v1.4'
+        run: |
+          git fetch origin feature/character-actions-v1.4
+          git reset --hard origin/feature/character-actions-v1.4
+          mkdir -p samples/solar-power-v1.4
+          cp build/actions14/exports/vertical.mp4 samples/solar-power-v1.4/portrait-60fps.mp4
+          cp build/actions14/exports/horizontal.mp4 samples/solar-power-v1.4/landscape-60fps.mp4
+          cp build/actions14/exports/report.json samples/solar-power-v1.4/verification.json
+          cp build/actions14/hyperframes/resolved_plan.json samples/solar-power-v1.4/resolved_plan.json
+          cp build/actions14/visual_qc/contact_sheet.png samples/solar-power-v1.4/contact_sheet.png
+          cp build/actions14/visual_qc/visual_qc.json samples/solar-power-v1.4/visual_qc.json
+          cp build/actions14/visual_qc_landscape/contact_sheet.png samples/solar-power-v1.4/contact_sheet_landscape.png
+          cp build/actions14/visual_qc_landscape/visual_qc.json samples/solar-power-v1.4/visual_qc_landscape.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add samples/solar-power-v1.4
+          if ! git diff --cached --quiet; then
+            git commit -m 'demo: preserve genuine 60 fps illustrated solar-explainer reel [skip ci]'
+            git push origin HEAD:feature/character-actions-v1.4
+          fi
