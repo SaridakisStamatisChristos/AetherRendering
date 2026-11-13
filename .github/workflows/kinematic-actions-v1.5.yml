@@ -1,0 +1,145 @@
+name: AetherRendering v1.5 — IK object interaction and walking
+on:
+  push:
+    branches:
+      - feature/kinematic-actions-v1.5
+    paths:
+      - src/kinematic_actions.py
+      - src/action_scenes.py
+      - src/visual_scenes.py
+      - src/visual_qc.py
+      - src/kinetic_storytelling.py
+      - src/ai_director.py
+      - src/hyperframes_pipeline.py
+      - tests/test_ai_rendering.py
+      - examples/lamp_repair_ik_30s.json
+      - .github/workflows/kinematic-actions-v1.5.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: aether-kinematic-v15-branch
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare local renderer and Kokoro models
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng libsndfile1
+          npm ci --no-audit --no-fund
+          python -m pip install -r requirements-tts.txt
+          python -m pip install -r requirements.txt
+          echo "HYPERFRAMES_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+          node_modules/.bin/hyperframes browser ensure
+      - name: Validate IK geometry, continuity, safety and all regression tests
+        run: |
+          python -m compileall -q src tests
+          python -m unittest discover -s tests -v
+          python - <<'PY'
+          import json,sys
+          sys.path.insert(0,'src')
+          from ai_director import validate_plan
+          p=validate_plan(json.load(open('examples/lamp_repair_ik_30s.json',encoding='utf-8')))
+          assert len(p['scenes'])==5
+          assert [s['visual']['type'] for s in p['scenes']] == ['kinematic_stage'] * 5
+          assert [s['visual']['behavior'] for s in p['scenes']] == ['walk_to','pick_up','inspect','set_down','operate']
+          assert all(len(s.get('beats',[]))==3 for s in p['scenes'])
+          assert [s['visual'].get('camera') for s in p['scenes']] == ['pan_right','push_in','detail','pan_left','wide']
+          print('VALIDATED:',len(p['scenes']),'animated scenes and',sum(len(s['beats']) for s in p['scenes']),'story beats, 5 camera views.')
+          PY
+      - name: Generate real 60 fps lamp repair MP4s with Kokoro
+        run: |
+          python src/hyperframes_pipeline.py \
+            --plan examples/lamp_repair_ik_30s.json \
+            --out-dir build/kinematic15/hyperframes \
+            --voice af_heart --tts --render \
+            --output build/kinematic15/exports --fps 60
+      - name: Verify audible video, geometry and 60 fps
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          report=json.loads(Path('build/kinematic15/exports/report.json').read_text())
+          assert len(report['outputs'])==2,report
+          for fmt,w,h in [('vertical',1080,1920),('horizontal',1920,1080)]:
+              p=Path('build/kinematic15/exports') / (fmt+'.mp4')
+              item=next(x for x in report['outputs'] if Path(x['path']).name==p.name)
+              assert item['audio_verified'] is True and item['full_decode'] is True,item
+              assert 24 <= item['duration'] <= 39,item
+              assert item['mean_volume_db'] > -58,item
+              v=json.loads(subprocess.check_output(['ffprobe','-v','error','-select_streams','v:0',
+                 '-show_entries','stream=avg_frame_rate,nb_frames,width,height','-of','json',str(p)]))['streams'][0]
+              assert (v['width'],v['height']) == (w,h),v
+              numerator,denominator=map(int,v['avg_frame_rate'].split('/'))
+              assert abs(numerator/denominator-60)<0.01,v
+              assert int(v.get('nb_frames',1800)) > 1400,v
+              print(f"VERIFIED {fmt}: {item['duration']:.2f}s, {numerator/denominator:.1f} fps, {item['mean_volume_db']} dB, {p.stat().st_size} bytes")
+          PY
+      - name: Extract representative frames and quantify visual change
+        run: |
+          python src/visual_qc.py --video build/kinematic15/exports/vertical.mp4 \
+            --resolved-plan build/kinematic15/hyperframes/resolved_plan.json \
+            --output build/kinematic15/visual_qc
+          python src/visual_qc.py --video build/kinematic15/exports/horizontal.mp4 \
+            --resolved-plan build/kinematic15/hyperframes/resolved_plan.json \
+            --output build/kinematic15/visual_qc_landscape
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('build/kinematic15/visual_qc/visual_qc.json').read_text())
+          assert data['all_scenes_change'] is True, data
+          assert data['sampled_frames']==15, data
+          assert Path('build/kinematic15/visual_qc/contact_sheet.png').is_file()
+          land=json.loads(Path('build/kinematic15/visual_qc_landscape/visual_qc.json').read_text())
+          assert land['all_scenes_change'] is True, land
+          assert land['sampled_frames']==15, land
+          assert Path('build/kinematic15/visual_qc_landscape/contact_sheet.png').is_file()
+          print("VERIFIED:",data['sampled_frames']+land['sampled_frames'],"real video frames across both formats; every action changes")
+          PY
+      - name: Upload full output and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AetherRendering-kinematic-rig-60fps
+          retention-days: 90
+          if-no-files-found: warn
+          path: |
+            examples/lamp_repair_ik_30s.json
+            build/kinematic15/hyperframes/resolved_plan.json
+            build/kinematic15/exports/*.mp4
+            build/kinematic15/exports/report.json
+            build/kinematic15/visual_qc/**
+            build/kinematic15/visual_qc_landscape/**
+      - name: Preserve checked real MP4s on feature branch
+        if: success() && github.ref == 'refs/heads/feature/kinematic-actions-v1.5'
+        run: |
+          git fetch origin feature/kinematic-actions-v1.5
+          git reset --hard origin/feature/kinematic-actions-v1.5
+          mkdir -p samples/lamp-repair-v1.5
+          cp build/kinematic15/exports/vertical.mp4 samples/lamp-repair-v1.5/portrait-60fps.mp4
+          cp build/kinematic15/exports/horizontal.mp4 samples/lamp-repair-v1.5/landscape-60fps.mp4
+          cp build/kinematic15/exports/report.json samples/lamp-repair-v1.5/verification.json
+          cp build/kinematic15/hyperframes/resolved_plan.json samples/lamp-repair-v1.5/resolved_plan.json
+          cp build/kinematic15/visual_qc/contact_sheet.png samples/lamp-repair-v1.5/contact_sheet.png
+          cp build/kinematic15/visual_qc/visual_qc.json samples/lamp-repair-v1.5/visual_qc.json
+          cp build/kinematic15/visual_qc_landscape/contact_sheet.png samples/lamp-repair-v1.5/contact_sheet_landscape.png
+          cp build/kinematic15/visual_qc_landscape/visual_qc.json samples/lamp-repair-v1.5/visual_qc_landscape.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add samples/lamp-repair-v1.5
+          if ! git diff --cached --quiet; then
+            git commit -m 'demo: preserve genuine 60 fps articulated character lamp-repair film [skip ci]'
+            git push origin HEAD:feature/kinematic-actions-v1.5
+          fi

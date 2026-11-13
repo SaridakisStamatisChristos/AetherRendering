@@ -1,0 +1,96 @@
+{
+  "topic": "How a technician restores a desk lamp",
+  "accent": "#6BCBE9",
+  "scenes": [
+    {
+      "title": "THE LAMP GOES DARK",
+      "subtitle": "Find the power source.",
+      "narration": "The desk lamp goes dark. A technician walks over to check its power source.",
+      "duration": 6,
+      "motion": "rise",
+      "visual": {
+        "type": "kinematic_stage",
+        "prop": "battery",
+        "behavior": "walk_to",
+        "camera": "pan_right"
+      },
+      "beats": [
+        "The lamp stops working",
+        "Find the power source",
+        "Walk closer to inspect"
+      ]
+    },
+    {
+      "title": "LIFT THE BATTERY",
+      "subtitle": "A careful, controlled pickup.",
+      "narration": "She reaches for the battery and carefully lifts it from the worktable.",
+      "duration": 6,
+      "motion": "slide",
+      "visual": {
+        "type": "kinematic_stage",
+        "prop": "battery",
+        "behavior": "pick_up",
+        "camera": "push_in"
+      },
+      "beats": [
+        "Extend the arm",
+        "Make hand contact",
+        "Lift the battery"
+      ]
+    },
+    {
+      "title": "LOOK FOR DAMAGE",
+      "subtitle": "A closer inspection.",
+      "narration": "Holding it close, she checks the contacts for damage and signs of corrosion.",
+      "duration": 6,
+      "motion": "zoom",
+      "visual": {
+        "type": "kinematic_stage",
+        "prop": "battery",
+        "behavior": "inspect",
+        "camera": "detail"
+      },
+      "beats": [
+        "Hold it steady",
+        "Inspect the contacts",
+        "Watch for corrosion"
+      ]
+    },
+    {
+      "title": "SET IT DOWN",
+      "subtitle": "Controlled placement on the table.",
+      "narration": "She lowers the battery onto the table beside the lamp, ready for testing.",
+      "duration": 6,
+      "motion": "pop",
+      "visual": {
+        "type": "kinematic_stage",
+        "prop": "battery",
+        "behavior": "set_down",
+        "camera": "pan_left"
+      },
+      "beats": [
+        "Move toward the table",
+        "Lower the battery",
+        "Release it carefully"
+      ]
+    },
+    {
+      "title": "LIGHT RETURNS",
+      "subtitle": "Verify that electricity is flowing.",
+      "narration": "Finally, she tests the lamp. A bright glow signals that electricity is flowing again.",
+      "duration": 6,
+      "motion": "rotate",
+      "visual": {
+        "type": "kinematic_stage",
+        "prop": "lamp",
+        "behavior": "operate",
+        "camera": "wide"
+      },
+      "beats": [
+        "Reach the lamp",
+        "Activate its circuit",
+        "Confirm the light"
+      ]
+    }
+  ]
+}
