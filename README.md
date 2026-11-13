@@ -55,6 +55,16 @@ python src/hyperframes_pipeline.py --plan examples/sky_blue_rich_30s.json \
 
 **Verification:** The real 60 fps, two-format render runs in the dedicated `visual-scenes-v1.1.yml` GitHub workflow; see the [visual scenes guide](docs/VISUAL_SCENES_V1_1.md). The dedicated real render [passed in GitHub Actions](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/runs/43413982958): 30 Python tests; two 29.83-second exports at 60 fps with real Kokoro narration, AAC audio and full decoding. [Download portrait MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/visual-scenes-v1.1/samples/sky-blue-rich/portrait-60fps.mp4) or [landscape MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/visual-scenes-v1.1/samples/sky-blue-rich/landscape-60fps.mp4). Artistic review is still required; stable `main` is unchanged.
 
+## v1.5 — Real IK character and object interaction (verified)
+
+The experimental v1.5 branch adds a grounded two-bone elbow solver and animated knee joints to the reusable 2D presenter, with coordinated walk, reach, pickup, inspect, set-down and operate behaviors. Hand and carried object share matching motion offsets, avoiding the floating-prop problem. It preserves every earlier scene family, safe JSON planning, Kokoro speech and HyperFrames/FFmpeg exports.
+
+**Real rendered samples:** [portrait MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/kinematic-actions-v1.5/samples/lamp-repair-v1.5/portrait-60fps.mp4) · [landscape MP4](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/kinematic-actions-v1.5/samples/lamp-repair-v1.5/landscape-60fps.mp4) · [portrait frame contact sheet](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/kinematic-actions-v1.5/samples/lamp-repair-v1.5/contact_sheet.png) · [landscape contact sheet](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/kinematic-actions-v1.5/samples/lamp-repair-v1.5/contact_sheet_landscape.png).
+
+The final 86-word lamp-repair example produced **32.97-second, 60 fps** narrated videos with valid AAC and verified volume (**−22.7 dB mean**). **63 Python tests passed**, FFmpeg decoded both complete movies, and all 30 sampled frames passed the per-scene motion audit. I also inspected both contact sheets: the technician walks into frame, the battery rises with the hand during pickup and lowers onto the worktable during placement; the final lamp emits a glow effect. [Successful media-validation run](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/runs/43461891588). See [v1.5 technical documentation](docs/KINEMATIC_ACTIONS_V1_5.md).
+
+**Scope:** This is stylized 2D IK at selected authored poses with interpolated transitions, not continuous full-body constraint solving, realistic 3D humans, lip-sync or actual physical simulation. The stable `main` branch is untouched pending visual review.
+
 ## v1.4 — Illustrated characters, object actions and camera views
 
 The experimental [v1.4 development branch](https://github.com/SaridakisStamatisChristos/AetherRendering/tree/feature/character-actions-v1.4) adds three optional JSON-driven scene families:

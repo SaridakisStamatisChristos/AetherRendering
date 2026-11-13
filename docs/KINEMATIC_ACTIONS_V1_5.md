@@ -52,3 +52,24 @@ The elbow and knee positions are solved exactly **at authored key poses**. GSAP 
 ## First live-run feedback and repair
 
 The original short sample had 66 words and Kokoro completed it in **23.22 seconds**. The audio/video itself decoded successfully, but the duration test correctly rejected it as too short for the intended 30-second class. The example narration has been revised to 86 words; the result still requires an actual duration measurement. The HyperFrames lint also warned that repeated GSAP `fromTo` tweens can apply later `from` values before earlier keyframes are played. Kinematic movements now use `immediateRender:false` and regression tests to preserve frame-accurate initial poses.
+
+## Verified production evidence — 13 November 2026
+
+The first real run exposed an undersized narration script (66 words, 23.22 seconds), which was correctly rejected by the duration gate even though the MP4 itself decoded and had audible narration. The script was expanded to 86 words. A regression test also caught GSAP's eager `fromTo` initialization on the camera target; all v1.5 IK and camera tweens now disable `immediateRender` to preserve seekable baseline state.
+
+The [final successful GitHub Actions run](https://github.com/SaridakisStamatisChristos/AetherRendering/actions/runs/43461891588) confirms:
+
+- **63 Python tests passed** (including exact-length checks at kinematic target poses, matching prop offsets, and previous-renderer compatibility).
+- Two genuine **32.97-second, 60 fps** video exports with Kokoro narration and AAC audio (mean volume **−22.7 dB**).
+- **1080×1920 portrait** and **1920×1080 landscape**, both fully decoded by FFmpeg.
+- **15 sampled visual frames per format** and successful motion gates for all 5 scenes.
+- Real sampled frames manually reviewed: walking, battery pickup, inspection, placement and lamp glow are distinguishable. This is visual inspection, not a motion-capture accuracy claim.
+
+| Verified artifact | Size | Direct download |
+|---|---:|---|
+| Portrait MP4 | 9,634,776 bytes | [Download](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/kinematic-actions-v1.5/samples/lamp-repair-v1.5/portrait-60fps.mp4) |
+| Landscape MP4 | 9,430,734 bytes | [Download](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/kinematic-actions-v1.5/samples/lamp-repair-v1.5/landscape-60fps.mp4) |
+| Portrait contact sheet | 736,155 bytes | [View](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/kinematic-actions-v1.5/samples/lamp-repair-v1.5/contact_sheet.png) |
+| Landscape contact sheet | 740,872 bytes | [View](https://raw.githubusercontent.com/SaridakisStamatisChristos/AetherRendering/feature/kinematic-actions-v1.5/samples/lamp-repair-v1.5/contact_sheet_landscape.png) |
+
+The feature remains on `feature/kinematic-actions-v1.5` for visual approval. The previous v1.4 videos are preserved and `main` is unaffected. Main limitations: small stylized presenter, simplified shapes, fixed predefined motions, no continuous per-frame skeletal constraint and no persistent scene-to-scene world physics.
