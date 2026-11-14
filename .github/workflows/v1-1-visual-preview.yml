@@ -1,0 +1,107 @@
+name: AetherRendering v1.1 visual scenes + captioned 30s real render
+on:
+  push:
+    branches: [feature/v1.1-visual-scenes-captions]
+    paths:
+      - src/**
+      - tests/**
+      - examples/sky_blue_30s.json
+      - .github/workflows/v1-1-visual-preview.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install speech and rendering dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng libsndfile1
+          npm ci --no-audit --no-fund
+          python -m pip install -r requirements-tts.txt
+          echo "HYPERFRAMES_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+          node_modules/.bin/hyperframes browser ensure
+      - name: Run full offline unit test suite and schema gate
+        run: |
+          python -m unittest discover -s tests -v
+          python - <<'PY'
+          import json,sys
+          sys.path.insert(0,'src')
+          from ai_director import validate_plan
+          plan=validate_plan(json.load(open('examples/sky_blue_30s.json')))
+          assert len(plan['scenes']) == 5
+          assert sum(s['duration'] for s in plan['scenes']) == 30
+          assert len({s['visual'] for s in plan['scenes']}) == 5
+          print('5 distinct visual presets, planned duration 30s: PASS')
+          PY
+      - name: Render original narration with reusable vector scenes and captions
+        run: |
+          python src/hyperframes_pipeline.py \
+            --plan examples/sky_blue_30s.json \
+            --out-dir build/v1_1/hyperframes \
+            --voice af_heart --tts --render \
+            --output build/v1_1/exports --fps 30
+      - name: Verify output and subtitles
+        run: |
+          python - <<'PY'
+          import json,re
+          from pathlib import Path
+          project=Path('build/v1_1/hyperframes')
+          exports=Path('build/v1_1/exports')
+          report=json.loads((exports/'report.json').read_text())
+          resolved=json.loads((project/'resolved_plan.json').read_text())
+          assert len(report['outputs'])==2
+          assert resolved['captions']['cue_count'] >= 12
+          assert resolved['captions']['word_aligned'] is False
+          assert len((exports/'captions.srt').read_text().split('-->')) >= 12
+          for format in ('vertical','horizontal'):
+              html=(project/format/'index.html').read_text()
+              assert html.count('class="visual-stage"')==5
+              assert html.count('class="caption-window"')>=12
+              assert 'cdn.jsdelivr.net' not in html
+              item=next(x for x in report['outputs'] if Path(x['path']).name==f'{format}.mp4')
+              assert item['full_decode'] and item['audio_verified']
+              assert 25 <= item['duration'] <= 36,item
+              assert item['mean_volume_db']>-58,item
+              print(f"PASS {format}: {item['duration']:.2f}s / {item['mean_volume_db']} dB / subtitles {resolved['captions']['cue_count']}")
+          PY
+      - name: Upload project and verified MP4s
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AetherRendering-v1-1-visual-preview
+          retention-days: 90
+          if-no-files-found: warn
+          path: |
+            examples/sky_blue_30s.json
+            build/v1_1/hyperframes/resolved_plan.json
+            build/v1_1/hyperframes/captions.srt
+            build/v1_1/exports/**
+      - name: Preserve successful demo on this feature branch only
+        if: success() && github.ref == 'refs/heads/feature/v1.1-visual-scenes-captions'
+        run: |
+          mkdir -p samples/v1.1-sky-blue
+          cp build/v1_1/exports/vertical.mp4 samples/v1.1-sky-blue/portrait.mp4
+          cp build/v1_1/exports/horizontal.mp4 samples/v1.1-sky-blue/landscape.mp4
+          cp build/v1_1/exports/captions.srt samples/v1.1-sky-blue/captions.srt
+          cp build/v1_1/exports/report.json samples/v1.1-sky-blue/verification.json
+          cp build/v1_1/hyperframes/resolved_plan.json samples/v1.1-sky-blue/resolved_plan.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add samples/v1.1-sky-blue
+          if ! git diff --cached --quiet; then
+            git commit -m 'demo: preserve v1.1 30s visual and caption sample [skip ci]'
+            git pull --rebase origin feature/v1.1-visual-scenes-captions
+            git push origin HEAD:feature/v1.1-visual-scenes-captions
+          fi
