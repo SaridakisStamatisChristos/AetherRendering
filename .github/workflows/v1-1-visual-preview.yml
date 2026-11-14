@@ -1,7 +1,7 @@
 name: AetherRendering v1.1 visual scenes + captioned 30s real render
 on:
   push:
-    branches: [feature/v1.1-visual-scenes-captions]
+    branches: [main, feature/v1.1-visual-scenes-captions]
     paths:
       - src/**
       - tests/**
