@@ -20,12 +20,14 @@ AetherRendering produces short, narrated videos in **Instagram/Reels portrait (1
 | Synthesize Kokoro through HyperFrames with the required Python ONNX backend | Real synthesis and CI demonstration verified |
 | Render portrait and landscape MP4s, verify codec/dimensions/full decode AND non-silent audio | Verified in real development-branch CI |
 | Create scene-specific photos, 3D assets, video clips, or music | **Not yet implemented** |
+| Phrase-level on-screen captions and exported SRT | **Implemented**; estimated from measured narration length, not forced aligned |
+| Five reusable scene illustrations | **Implemented**; local SVG treatments for spectrum, scattering, atmosphere, wavelengths and sunset |
 | Word-by-word timed captions in the new engine | **Not yet implemented** |
 | Upload each new video directly to Instagram/YouTube | **Not implemented** |
 | Automatically create GitHub Releases for each new video | **Not yet implemented** |
 | Pinned rendering dependencies | HyperFrames 0.9.37, GSAP 3.14.2 and npm lockfile; local JS vendor bundle |
 
-The current aesthetic uses **animated typography and simple motion graphics**. Do not confuse it with an autonomous, fully cinematic video-editing system. AI-created content still requires factual and editorial review.
+The v1.1 engine combines **animated typography, reusable self-contained SVG explanatory illustrations, and approximate phrase captions**. The five initial visual treatments are examples of the new reusable scene system. Do not confuse it with an autonomous, fully cinematic video-editing system. AI-created content still requires factual and editorial review.
 
 ## How the system works
 
@@ -107,6 +109,16 @@ You can access the previously committed HyperFrames/Kokoro demonstration MP4s di
 - [**Instagram portrait MP4 — HyperFrames + Kokoro**](output/hyperframes_v2/instagram.mp4)
 - [**YouTube landscape MP4 — HyperFrames + Kokoro**](output/hyperframes_v2/youtube.mp4)
 - [Verification result](output/hyperframes_v2/verification.json)
+
+**New v1.1 illustrated, captioned 30-second science explainer (29.83s actually rendered):**
+
+- [Portrait illustrated MP4 — direct GitHub file](samples/v1.1-sky-blue/portrait.mp4)
+- [Landscape illustrated MP4 — direct GitHub file](samples/v1.1-sky-blue/landscape.mp4)
+- [Exported phrase subtitles (SRT)](samples/v1.1-sky-blue/captions.srt)
+- [Full audio/video verification](samples/v1.1-sky-blue/verification.json)
+- [Scene and caption guide](docs/V1_1_VISUAL_SCENES.md)
+
+The previous typography-only 30-second test is retained under [samples/sky-blue-30s](samples/sky-blue-30s/) for comparison.
 - [Earlier FFmpeg portrait demonstration](output/instagram_1080x1920.mp4)
 - [Earlier FFmpeg landscape demonstration](output/youtube_1920x1080.mp4)
 
@@ -302,7 +314,7 @@ The current JSON storyboard contains a topic, an optional `#RRGGBB` accent, and 
 }
 ```
 
-The AI Director validates scene fields and timing; an unsupported motion or malformed JSON causes the build to stop before rendering. The generated visuals currently use animated headings, subheadings, decorative shapes and a progress bar—not custom stock footage or complex 3D scenes.
+The AI Director validates scene fields and timing; unsupported motion, visual presets or malformed JSON stop compilation. The optional `visual` scene field accepts only `abstract` (the previous style), `spectrum`, `scatter`, `atmosphere`, `wavelengths`, or `sunset`. The visuals are fixed, fully local vector illustrations—not custom AI footage or complex 3D scenes. Both aspect ratios can include seekable phrase captions, plus an exported `captions.srt`.
 
 ### Legacy FFmpeg rendering
 
@@ -349,7 +361,7 @@ Expected video dimensions are **1080×1920 portrait** and **1920×1080 landscape
 | **Headless browser missing** | Run `node_modules/.bin/hyperframes browser ensure` after `npm ci`. |
 | **Kokoro voice generation fails** | Check chosen voice and initial model download; read the TTS step log. |
 | **Video length differs from target** | Timing follows measured narration, not the `seconds` value exactly. |
-| **Visuals seem like slides** | Current engine generates typographic motion graphics; media/3D/advanced editing remain future work. |
+| **Visuals seem like slides** | Add an appropriate validated `visual` preset per scene. Five vector templates are implemented; arbitrary footage, characters and 3D still require future work. |
 | **Results change between runs** | Use `npm ci` with the committed lockfile; the browser and model asset caches still need separate control. |
 | **State/ledger push fails** | Check workflow `contents: write`, branch protection and concurrency rules. |
 | **Can't watch GitHub MP4 on Android** | Choose the raw/download link; play the downloaded file locally. |
@@ -366,7 +378,7 @@ Expected video dimensions are **1080×1920 portrait** and **1920×1080 landscape
 - Verify rights and licensing before adding stock footage, graphics, music or voices from external sources.
 - The system does not yet generate elaborate image/3D assets, mix music, align individual spoken words, automatically perform factual research, or upload to social platforms.
 
-**Suggested roadmap:** verify fully disconnected builds; add versioned GitHub Releases for individual MP4 downloads; implement richer reusable motion templates and visual assets; add word-timed captions/music/sound effects; support alternative narrators (including Greek); and introduce human creative review gates.
+**Suggested roadmap:** verify fully disconnected builds; add versioned GitHub Releases for individual MP4 downloads; expand scene visual vocabulary; implement true word-alignment and music/sound effects; support alternative narrators (including Greek); and introduce human creative review gates.
 
 ### Reference guides
 
