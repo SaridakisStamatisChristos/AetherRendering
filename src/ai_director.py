@@ -11,8 +11,9 @@ from pathlib import Path
 import re
 import sys
 from gemini_router import route_plan, discover_models, RouterError
+from visual_scenes import VISUALS
 
-SCENE_KEYS = {'title', 'subtitle', 'narration', 'duration', 'motion'}
+SCENE_KEYS = {'title', 'subtitle', 'narration', 'duration', 'motion', 'visual'}
 MOTIONS = {'rise', 'slide', 'zoom', 'rotate', 'pop'}
 
 
@@ -39,6 +40,8 @@ def validate_plan(plan):
             raise ValueError(f'Scene {i}: duration must be 2–15 seconds')
         if scene.get('motion', 'rise') not in MOTIONS:
             raise ValueError(f'Scene {i}: unknown motion preset')
+        if scene.get('visual', 'abstract') not in VISUALS:
+            raise ValueError(f'Scene {i}: unknown visual treatment')
     if sum(s['duration'] for s in scenes) > 180:
         raise ValueError('Video must be 180 seconds or shorter')
     return plan
@@ -71,8 +74,10 @@ def gemini_prompt(topic, duration):
     return (f'Create an ORIGINAL short educational social video about: {topic!r}. '
             f'Target approximately {duration} seconds split into {n} scenes. '
             'Return ONLY JSON: {"topic":str,"accent":"#4CE0C1","scenes":'
-            '[{"title":str,"subtitle":str,"narration":str,"duration":number,"motion":str}]}. '
-            'Each scene lasts 2–15 seconds. Motion must be one of rise,slide,zoom,rotate,pop. '
+            '[{"title":str,"subtitle":str,"narration":str,"duration":number,"motion":str,"visual":str}]}. '
+            'Each scene lasts 2–15 seconds. Motion: rise,slide,zoom,rotate,pop. '
+            'Visual: abstract,spectrum,scatter,atmosphere,wavelengths,sunset. '
+            'Choose a matching visual for each scene; use abstract when uncertain. '
             'Use a persuasive opening, logically developed explanation, useful takeaway. '
             'Do not fabricate research, statistics, product pricing, quotations, or factual claims. '
             'Keep title under 75 characters, subtitle under 160, narration under 380. '

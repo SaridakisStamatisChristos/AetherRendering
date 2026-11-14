@@ -17,6 +17,8 @@ import subprocess
 import sys
 
 from ai_director import validate_plan
+from captions import cues_for_plan, to_srt
+from visual_scenes import render_visual
 
 ROOT = Path(__file__).resolve().parents[1]
 HYPERFRAMES_BIN = ROOT / 'node_modules' / '.bin' / 'hyperframes'
@@ -84,12 +86,22 @@ def build_html(plan, format_name, voice_files):
     total = round(sum(d for _, d in voice_files), 3)
     t = 0.0
     sections, audios, animation = [], [], []
+    cues = cues_for_plan(plan, voice_files)
     safe_topic = html.escape(plan['topic'], quote=True)
     for i, (scene, (wav_name, duration)) in enumerate(zip(plan['scenes'], voice_files)):
         start = round(t, 3)
         sid = f'scene-{i}'
         title = html.escape(scene['title'], quote=True)
         subtitle = html.escape(scene['subtitle'], quote=True)
+        visual_type = scene.get('visual', 'abstract')
+        rich = visual_type != 'abstract'
+        art_markup = render_visual(visual_type, i)
+        decoration = '' if rich else '<div class="decor"><span></span><span></span><span></span></div>'
+        scene_cues = [cue for cue in cues if cue['scene'] == i]
+        caption_markup = ''.join(
+            f'<div id="cap-{i}-{cue["index"]}" class="caption-window">{html.escape(cue["text"], quote=True)}</div>'
+            for cue in scene_cues
+        )
         # Optional motion presets become deterministic, seekable GSAP tweens.
         motion = scene.get('motion', 'rise')
         enters = {
@@ -97,11 +109,13 @@ def build_html(plan, format_name, voice_files):
             'zoom': 'scale:0.65,opacity:0', 'rotate': 'rotation:-8,scale:0.9,opacity:0',
             'pop': 'scale:0.7,opacity:0',
         }[motion]
-        sections.append(f'''<section id="{sid}" class="clip scene" data-start="{start:g}" data-duration="{duration:g}" data-track-index="1">
-  <div class="decor"><span></span><span></span><span></span></div>
+        sections.append(f'''<section id="{sid}" class="clip scene{' visual-rich' if rich else ''}" data-start="{start:g}" data-duration="{duration:g}" data-track-index="1">
+  {decoration}
+  {art_markup}
   <div class="stripe"></div><p class="eyebrow">AETHER VIDEO ENGINE <span>{i+1:02d}/{len(plan['scenes']):02d}</span></p>
   <div class="story"><div class="index">0{i+1}</div><h1 id="title-{i}">{title}</h1>
   <p id="subtitle-{i}" class="subtitle">{subtitle}</p></div>
+  <div class="caption-track">{caption_markup}</div>
   <footer><b>{safe_topic}</b><span>EXPLORE THE IDEA</span></footer>
   <div id="progress-{i}" class="progress"></div>
 </section>''')
@@ -112,6 +126,17 @@ def build_html(plan, format_name, voice_files):
         animation.append(f'''tl.fromTo('#title-{i}',{{{enters}}},{{x:0,y:0,scale:1,rotation:0,opacity:1,duration:{anim_length:.3f},ease:'power3.out'}},{start + .12:.3f});
 tl.fromTo('#subtitle-{i}',{{y:35,opacity:0}},{{y:0,opacity:1,duration:0.55,ease:'power2.out'}},{start + .4:.3f});
 tl.fromTo('#progress-{i}',{{scaleX:0}},{{scaleX:1,duration:{duration:.3f},ease:'none'}},{start:.3f});''')
+        if rich:
+            animation.append(
+                f"tl.fromTo('#visual-{i}',{{opacity:0,scale:.92}},{{opacity:1,scale:1,duration:1.05,ease:'power2.out'}},{start+.16:.3f});"
+            )
+            animation.append(
+                f"tl.fromTo('#visual-{i} .ray',{{opacity:.16}},{{opacity:.88,duration:1.30,stagger:.055,ease:'power2.out'}},{start+.48:.3f});"
+            )
+        for cue in scene_cues:
+            cap = f'#cap-{i}-{cue["index"]}'
+            animation.append(f"tl.set('{cap}',{{opacity:1}},{cue['start']:.3f});")
+            animation.append(f"tl.set('{cap}',{{opacity:0}},{cue['end']:.3f});")
         t += duration
     return f'''<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -129,6 +154,15 @@ h1{{font-size:{103 if vertical else 117}px;line-height:1.01;letter-spacing:-3px;
 .decor{{position:absolute;inset:0;opacity:.25;pointer-events:none}}.decor span{{position:absolute;border-radius:50%;border:5px solid {plan.get('accent','#4CE0C1')};width:600px;height:600px;right:-250px;top:10%}}.decor span:nth-child(2){{right:-100px;top:28%;width:370px;height:370px;opacity:.4}}.decor span:nth-child(3){{right:23%;top:75%;width:140px;height:140px;opacity:.6}}
 footer{{font-size:23px;letter-spacing:2px;text-transform:uppercase;display:flex;justify-content:space-between;gap:30px;z-index:2;color:#9AADB8;max-width:100%;overflow:hidden;white-space:nowrap}}footer b{{color:#E3EEF2;overflow:hidden;text-overflow:ellipsis}}
 .progress{{position:absolute;bottom:0;left:0;height:12px;width:100%;background:{plan.get('accent','#4CE0C1')};transform-origin:left center}}
+.visual-stage{{position:absolute;z-index:1;top:{660 if vertical else 150}px;left:{85 if vertical else 900}px;right:{85 if vertical else 70}px;height:{775 if vertical else 720}px;opacity:0;transform-origin:center center;}}
+.scene-svg{{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 18px 46px rgba(0,0,0,.28))}}
+.visual-label{{position:absolute;bottom:3%;right:6%;font-size:18px;letter-spacing:4px;color:#D5E9F6;opacity:.7}}
+.scene.visual-rich .story{{position:absolute;left:{100 if vertical else 125}px;top:{270 if vertical else 225}px;right:{95 if vertical else 1020}px;margin:0;z-index:3;}}
+.scene.visual-rich h1{{font-size:{83 if vertical else 82}px;line-height:1.04;max-width:100%;margin:10px 0 24px;}}
+.scene.visual-rich .subtitle{{font-size:{35 if vertical else 37}px;line-height:1.3;}}
+.scene.visual-rich footer{{position:absolute;left:{100 if vertical else 130}px;right:{100 if vertical else 130}px;bottom:{80 if vertical else 48}px;}}
+.caption-track{{position:absolute;bottom:{190 if vertical else 135}px;left:{94 if vertical else 125}px;right:{94 if vertical else 125}px;height:{128 if vertical else 105}px;display:flex;align-items:center;z-index:12;pointer-events:none}}
+.caption-window{{position:absolute;left:0;right:0;opacity:0;margin:auto;padding:{26 if vertical else 20}px 36px;border-radius:20px;border-left:8px solid {plan.get('accent','#4CE0C1')};background:rgba(5,14,26,.92);box-shadow:0 12px 42px rgba(0,0,0,.3);color:#F4F9FF;font-size:{39 if vertical else 34}px;font-weight:700;line-height:1.18;text-align:center;text-wrap:balance;text-shadow:0 2px 12px rgba(0,0,0,.45)}}
 </style></head>
 <body><div id="root" data-composition-id="aether-{format_name}" data-start="0" data-width="{width}" data-height="{height}" data-duration="{total:g}" data-fps="30">
 {''.join(sections)}
@@ -149,6 +183,9 @@ def write_project(plan, destination, with_voice=False, voice='af_heart'):
     destination = Path(destination)
     voice_dir = destination / 'assets' / 'voice'
     voices = prepare_audio(plan, voice_dir, voice=voice, generate=with_voice)
+    cues = cues_for_plan(plan, voices)
+    destination.mkdir(parents=True, exist_ok=True)
+    (destination / 'captions.srt').write_text(to_srt(cues), encoding='utf-8')
     for name in FORMATS:
         dirpath = destination / name
         dirpath.mkdir(parents=True, exist_ok=True)
@@ -168,6 +205,8 @@ def write_project(plan, destination, with_voice=False, voice='af_heart'):
     (destination / 'resolved_plan.json').write_text(json.dumps({
         **plan, 'resolved_duration_seconds': round(sum(d for _, d in voices), 3),
         'voice': voice if with_voice else 'none',
+        'captions': {'timing_method': 'phrase_estimate_from_measured_scene_audio' if with_voice else 'phrase_estimate_from_planned_scene_duration',
+                     'cue_count': len(cues), 'word_aligned': False},
         'scenes': [{**s, 'duration': d} for s, (_, d) in zip(plan['scenes'], voices)]
     }, indent=2, ensure_ascii=False) + '\n')
     return destination
@@ -224,6 +263,7 @@ def main():
             bundle_gsap(out / fmt)
         exports = Path(args.output)
         exports.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(out / 'captions.srt', exports / 'captions.srt')
         report = {'engine': 'hyperframes', 'voice_engine': 'kokoro-local', 'outputs': []}
         for fmt, (w, h) in FORMATS.items():
             mp4 = (exports / f'{fmt}.mp4').resolve()
