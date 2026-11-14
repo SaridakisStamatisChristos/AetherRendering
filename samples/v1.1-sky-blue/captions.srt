@@ -1,0 +1,60 @@
+1
+00:00:00,000 --> 00:00:01,802
+Sunlight looks white, but it is a
+
+2
+00:00:01,802 --> 00:00:03,604
+mixture of all the colors we can
+
+3
+00:00:03,604 --> 00:00:03,861
+see.
+
+4
+00:00:04,211 --> 00:00:07,104
+In the atmosphere, small molecules scatter short
+
+5
+00:00:07,104 --> 00:00:09,997
+blue wavelengths much more strongly than longer
+
+6
+00:00:09,997 --> 00:00:10,824
+red wavelengths.
+
+7
+00:00:11,174 --> 00:00:13,300
+That blue light spreads in every direction
+
+8
+00:00:13,300 --> 00:00:15,426
+and reaches our eyes from across the
+
+9
+00:00:15,426 --> 00:00:16,337
+sky above us.
+
+10
+00:00:16,687 --> 00:00:19,104
+Violet scatters even more, but sunlight has
+
+11
+00:00:19,104 --> 00:00:21,521
+less of it, and our eyes respond
+
+12
+00:00:21,521 --> 00:00:22,212
+less strongly.
+
+13
+00:00:22,562 --> 00:00:25,408
+At sunset, sunlight travels through more air.
+
+14
+00:00:25,408 --> 00:00:28,254
+More blue scatters away, leaving brilliant orange
+
+15
+00:00:28,254 --> 00:00:29,474
+and red colors.
+
