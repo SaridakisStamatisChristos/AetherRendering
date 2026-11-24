@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "duration_seconds": 10.005,
+  "resolution": "1280x720",
+  "fps": "24/1",
+  "video_codec": "h264",
+  "audio_codec": "aac",
+  "bytes": 974396,
+  "wall_seconds": 12
+}

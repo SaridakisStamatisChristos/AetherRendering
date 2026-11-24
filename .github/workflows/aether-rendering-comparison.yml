@@ -1,0 +1,55 @@
+name: AetherRendering vs Remotion native smoke comparison
+on:
+  push:
+    branches: [experiment/aether-rendering-compare-v1]
+    paths:
+      - experiments/render-compare/**
+      - .github/workflows/aether-rendering-comparison.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned native AetherRendering engine and FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          npm ci --no-audit --no-fund
+          node_modules/.bin/hyperframes browser ensure
+      - name: Create matching 10-second soundtrack and GSAP composition
+        run: |
+          python3 experiments/render-compare/scripts/make_audio.py
+          python3 experiments/render-compare/scripts/build_scene.py
+      - name: Lint native HyperFrames composition
+        working-directory: build/compare-aether/composition
+        run: "$GITHUB_WORKSPACE/node_modules/.bin/hyperframes" lint
+      - name: Render with HyperFrames (not Remotion)
+        working-directory: build/compare-aether/composition
+        run: |
+          mkdir -p ../exports
+          python3 -c 'import time; open("../exports/render_start","w").write(str(time.time()))'
+          "$GITHUB_WORKSPACE/node_modules/.bin/hyperframes" render \
+            --output "$GITHUB_WORKSPACE/build/compare-aether/exports/aether.mp4" --fps 24
+          python3 -c 'import time; open("../exports/render_end","w").write(str(time.time()))'
+      - name: Verify complete MP4, non-silent audio, and compare
+        run: python3 experiments/render-compare/scripts/verify_render.py
+      - name: Upload rendered video and comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aetherrendering-remotion-comparison
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            build/compare-aether/exports/**
+            experiments/render-compare/remotion_baseline.json
