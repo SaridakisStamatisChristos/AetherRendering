@@ -32,7 +32,8 @@ jobs:
           python3 experiments/render-compare/scripts/build_scene.py
       - name: Lint native HyperFrames composition
         working-directory: build/compare-aether/composition
-        run: "$GITHUB_WORKSPACE/node_modules/.bin/hyperframes" lint
+        run: |
+          "$GITHUB_WORKSPACE/node_modules/.bin/hyperframes" lint
       - name: Render with HyperFrames (not Remotion)
         working-directory: build/compare-aether/composition
         run: |
