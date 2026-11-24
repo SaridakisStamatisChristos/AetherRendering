@@ -47,7 +47,7 @@ html,body{margin:0;padding:0;background:#060b19;width:1280px;height:720px;overfl
 <path d="M0 584 L1280 570 1280 720 0 720Z" fill="url(#gr0)"/>
 <path d="M0 583 L1280 571" stroke="#486e80" stroke-width="4"/>
 <path d="M0 667 L1280 655" stroke="#527284" stroke-width="4" stroke-dasharray="110 51" opacity=".4"/>
-<g id="walk-robot" transform="translate(390 528)">
+<g transform="translate(680 528)"><g id="walk-robot">
  <ellipse cx="0" cy="72" rx="55" ry="11" fill="#020c18" opacity=".58"/>
  <g id="walk-left-leg" transform="translate(-18 2)"><path d="M0 0 L-8 31 L-20 66" stroke="#d3e4e9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
  <g id="walk-right-leg" transform="translate(18 2)"><path d="M0 0 L8 31 L20 66" stroke="#d3e4e9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
@@ -58,7 +58,7 @@ html,body{margin:0;padding:0;background:#060b19;width:1280px;height:720px;overfl
  <circle cx="-15" cy="-130" r="5" fill="#6bf1fd"/><circle cx="15" cy="-130" r="5" fill="#6bf1fd"/>
  <path d="M0 -165 V-181" stroke="#dceaf0" stroke-width="5"/><circle cy="-185" r="5" fill="#66ecff"/>
  <rect x="-13" y="-48" width="26" height="9" rx="4" fill="#4fedfe"/>
-</g>
+</g></g>
 <g id="fog0"><ellipse cx="550" cy="589" rx="450" ry="22" fill="#9ed9dc" opacity=".075"/><ellipse cx="1120" cy="578" rx="350" ry="21" fill="#b7e3f0" opacity=".04"/></g>
 </svg>
 <div id="copy0" class="copy"><div class="label">CHAPTER I / THE SILENCE</div><div class="rule"></div><div class="line">NO ONE<br/>LEFT TO<br/>ANSWER.</div><p class="sub">Until a forgotten machine heard something impossible.</p></div>
@@ -112,7 +112,7 @@ html,body{margin:0;padding:0;background:#060b19;width:1280px;height:720px;overfl
 </g>
 <path d="M0 592 Q430 579 880 580 T1280 581 V720 H0Z" fill="#111c34"/>
 <path d="M0 588 Q430 576 880 578 T1280 579" stroke="#a16c70" stroke-width="3" opacity=".75"/>
-<g id="s2-light-wave" fill="none" stroke="#e9ffed" stroke-width="5" opacity=".0">
+<g id="s2-light-wave" fill="none" stroke="#9ce9f3" stroke-width="2.5" opacity=".0">
  <circle cx="714" cy="577" r="20"/>
  <circle cx="714" cy="577" r="70"/>
 </g>
@@ -164,7 +164,7 @@ tl.fromTo('#copy1',{opacity:0,x:65},{opacity:1,x:0,duration:.9,ease:'power3.out'
 tl.fromTo('#robot-hand',{x:-200,y:50,rotation:-9},{x:10,y:0,rotation:0,duration:3.7,ease:'power2.inOut',transformOrigin:'45% 85%'},5.02);
 tl.fromTo('#orb1',{scale:.4,opacity:.22},{scale:1.7,opacity:1,duration:2.6,ease:'sine.inOut',transformOrigin:'50% 50%'},6.1);
 tl.fromTo('#pulse-ring',{opacity:0,scale:.5},{opacity:1,scale:1.55,duration:3,ease:'power3.out',transformOrigin:'56% 80%'},6.1);
-tl.fromTo('#s1-rings',{opacity:0,scale:.1},{opacity:.86,scale:2.8,duration:3.6,ease:'power2.out',transformOrigin:'56% 80%'},5.9);
+tl.fromTo('#s1-rings',{opacity:0,scale:.1},{opacity:.52,scale:2.8,duration:3.6,ease:'power2.out',transformOrigin:'56% 80%'},5.9);
 tl.fromTo('.spark',{opacity:0,scale:.3},{opacity:.9,scale:1.4,duration:1.8,stagger:{each:.023,from:'random'},ease:'power2.out',transformOrigin:'center center'},7.3);
 tl.to('#copy1',{opacity:0,x:35,duration:.5},9.55);
 tl.to('#shot1',{opacity:0,duration:.9},9.72);
@@ -173,7 +173,7 @@ tl.fromTo('#shot2',{opacity:0},{opacity:1,duration:.85},9.65);
 tl.fromTo('#s2-sun',{opacity:0,y:48,scale:.8},{opacity:1,y:0,scale:1.12,duration:4.1,ease:'power2.out',transformOrigin:'72% 54%'},9.7);
 tl.fromTo('#s2-city',{x:60},{x:-65,duration:5.3,ease:'none'},9.7);
 tl.fromTo('.city-light',{opacity:.01},{opacity:.84,duration:.55,stagger:{amount:3.6,from:'center',grid:'auto'},ease:'sine.out'},10.2);
-tl.fromTo('#s2-light-wave',{opacity:0,scale:.05},{opacity:.85,scale:7,duration:2.8,ease:'power2.out',transformOrigin:'55% 80%'},9.85);
+tl.fromTo('#s2-light-wave',{opacity:0,scale:.05},{opacity:.18,scale:4.4,duration:2.8,ease:'power2.out',transformOrigin:'55% 80%'},9.85);
 tl.fromTo('#copy2',{opacity:0,y:55},{opacity:1,y:0,duration:1.1,ease:'power4.out'},10.3);
 tl.fromTo('.mote',{opacity:0,y:25},{opacity:.78,y:-19,duration:2.5,stagger:{each:.065,from:'random'},ease:'power1.out'},11.1);
 tl.to('#copy2',{opacity:0,duration:.45},14.45);
