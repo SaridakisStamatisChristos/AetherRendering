@@ -14,8 +14,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install pinned native HyperFrames and local GSAP
-        run: npm ci --no-audit --no-fund
+      - name: Install FFmpeg and pinned native HyperFrames / GSAP
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          npm ci --no-audit --no-fund
       - name: Generate shared soundtrack and assemble native composition
         run: |
           python3 experiments/creative-duel/scripts/make_creative_audio.py
