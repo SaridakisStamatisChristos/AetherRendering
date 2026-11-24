@@ -1,0 +1,63 @@
+name: Creative Duel — AetherRendering native HyperFrames cut
+on:
+  push:
+    branches: [experiment/creative-duel-hyperframes-v1]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned native HyperFrames and local GSAP
+        run: npm ci --no-audit --no-fund
+      - name: Generate shared soundtrack and assemble native composition
+        run: |
+          python3 experiments/creative-duel/scripts/make_creative_audio.py
+          mkdir -p experiments/creative-duel/scene/assets/audio
+          mkdir -p experiments/creative-duel/scene/assets/vendor
+          cp experiments/creative-duel/public/creative-score.wav experiments/creative-duel/scene/assets/audio/creative-score.wav
+          cp node_modules/gsap/dist/gsap.min.js experiments/creative-duel/scene/assets/vendor/gsap.min.js
+          node_modules/.bin/hyperframes browser ensure
+      - name: HyperFrames lint and render
+        working-directory: experiments/creative-duel/scene
+        run: |
+          "$GITHUB_WORKSPACE/node_modules/.bin/hyperframes" lint
+          mkdir -p "$GITHUB_WORKSPACE/experiments/creative-duel/out"
+          echo "RENDER_START=$(date +%s%3N)" >> "$GITHUB_ENV"
+          "$GITHUB_WORKSPACE/node_modules/.bin/hyperframes" render --output "$GITHUB_WORKSPACE/experiments/creative-duel/out/creative-aether.mp4" --fps 24
+          echo "RENDER_END=$(date +%s%3N)" >> "$GITHUB_ENV"
+      - name: Validate original video + synchronized soundtrack
+        run: |
+          if ! command -v ffprobe >/dev/null; then sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; fi
+          cd experiments/creative-duel/out
+          ffprobe -v error -show_format -show_streams -of json creative-aether.mp4 > probe.json
+          ffmpeg -v error -xerror -i creative-aether.mp4 -f null -
+          python3 - <<'PY'
+          import json,os,pathlib
+          d=json.loads(pathlib.Path('probe.json').read_text())
+          vs=[x for x in d['streams'] if x['codec_type']=='video']
+          aud=[x for x in d['streams'] if x['codec_type']=='audio']
+          assert len(vs)==1 and len(aud)==1,d
+          v=vs[0];assert (v['width'],v['height'])==(1280,720)
+          assert v['codec_name']=='h264' and aud[0]['codec_name']=='aac'
+          assert v['r_frame_rate']=='24/1'
+          assert int(v.get('nb_frames','360'))==360
+          dur=float(d['format']['duration']);assert 14.98<=dur<=15.05,dur
+          p=pathlib.Path('creative-aether.mp4')
+          result={'engine':'hyperframes-gsap','treatment':'three-chapter graphic noir and kinetic typography','duration_seconds':dur,'render_seconds':(int(os.environ['RENDER_END'])-int(os.environ['RENDER_START']))/1000,'bytes':p.stat().st_size,'fps':24,'frame_count':360,'dimensions':'1280x720','audio':'AAC','full_decode':True,'scene':'The Last Signal'}
+          pathlib.Path('metrics.json').write_text(json.dumps(result,indent=2))
+          print(json.dumps(result,indent=2))
+          PY
+      - name: Publish verified video and metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: creative-duel-aetherrendering
+          retention-days: 30
+          path: experiments/creative-duel/out/**

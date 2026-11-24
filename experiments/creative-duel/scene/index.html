@@ -1,0 +1,186 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>The Last Signal — AetherRendering director's cut</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#060b19;width:1280px;height:720px;overflow:hidden;color:#f2f7ff;font-family:Arial,"DejaVu Sans",sans-serif}
+#root{position:absolute;inset:0;width:1280px;height:720px;overflow:hidden;background:#050a18}
+#sequence{position:absolute;inset:0;width:1280px;height:720px}
+.shot{position:absolute;inset:0;width:1280px;height:720px;overflow:hidden;opacity:0}
+#shot0{opacity:1}
+.art{width:1280px;height:720px;position:absolute;inset:0}
+.copy{position:absolute;z-index:5}
+.label{font-size:14px;letter-spacing:6px;font-weight:800;color:#83e9ff}
+.line{font-size:64px;line-height:1.0;font-weight:900;letter-spacing:-2px;color:#f7faff}
+.sub{font-size:19px;letter-spacing:1px;line-height:1.3;color:#c3d7e3;max-width:520px}
+#copy0{top:115px;left:86px}
+#copy1{top:121px;right:80px;text-align:right}
+#copy2{top:115px;left:86px}
+#copy1 .sub{margin-left:auto}
+.rule{height:3px;width:82px;background:#6ef5ff;margin:25px 0}
+.meta{position:absolute;bottom:54px;left:83px;right:82px;display:flex;justify-content:space-between;color:#b3d4e3;letter-spacing:3px;font-weight:700;font-size:12px;z-index:6}
+#letterbox-top,#letterbox-bottom{position:absolute;left:0;width:1280px;height:25px;z-index:80;background:#03050a}
+#letterbox-top{top:0}
+#letterbox-bottom{bottom:0}
+</style></head>
+<body><div id="root" data-composition-id="aether-creative-duel" data-start="0" data-duration="15" data-width="1280" data-height="720" data-fps="24">
+<section id="sequence" class="clip" data-track-index="1" data-start="0" data-duration="15">
+<!-- SHOT 1: graphic-noir editorial wide city, independently composed -->
+<div id="shot0" class="shot">
+<svg class="art" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+<defs>
+ <linearGradient id="n0" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#071020"/><stop offset=".6" stop-color="#16415b"/><stop offset="1" stop-color="#385362"/></linearGradient>
+ <linearGradient id="gr0" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#213848"/><stop offset="1" stop-color="#070d1d"/></linearGradient>
+ <radialGradient id="moon"><stop stop-color="#a9dbff" stop-opacity=".6"/><stop offset="1" stop-color="#a9dbff" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="1280" height="720" fill="url(#n0)"/>
+<circle cx="900" cy="230" r="175" fill="url(#moon)"/>
+<circle cx="900" cy="230" r="38" fill="#c1e2ff" opacity=".64"/>
+<g id="s0-stars"></g>
+<g id="s0-distant">
+ <path d="M0 500 L0 308 75 308 75 430 135 430 135 246 230 246 230 399 284 399 284 202 360 202 360 416 414 416 414 261 515 261 515 422 577 422 577 330 678 330 678 480 736 480 736 271 815 271 815 436 876 436 876 347 940 347 940 475 1003 475 1003 288 1100 288 1100 422 1156 422 1156 355 1280 355 1280 500Z" fill="#17283a"/>
+</g>
+<g id="s0-city">
+ <path d="M0 573 V490 H97 V361 H208 V481 H279 V306 H371 V480 H464 V398 H537 V571 H617 V336 H730 V562 H803 V404 H904 V552 H980 V327 H1085 V568 H1141 V437 H1280 V573Z" fill="#0b2031"/>
+ <g id="s0-windows"></g>
+</g>
+<path d="M0 584 L1280 570 1280 720 0 720Z" fill="url(#gr0)"/>
+<path d="M0 583 L1280 571" stroke="#486e80" stroke-width="4"/>
+<path d="M0 667 L1280 655" stroke="#527284" stroke-width="4" stroke-dasharray="110 51" opacity=".4"/>
+<g id="walk-robot" transform="translate(390 528)">
+ <ellipse cx="0" cy="72" rx="55" ry="11" fill="#020c18" opacity=".58"/>
+ <g id="walk-left-leg" transform="translate(-18 2)"><path d="M0 0 L-8 31 L-20 66" stroke="#d3e4e9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+ <g id="walk-right-leg" transform="translate(18 2)"><path d="M0 0 L8 31 L20 66" stroke="#d3e4e9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+ <path d="M-29 -68 L-49 -28 L-41 4 M29 -68 L49 -29 L42 4" stroke="#c4dce5" stroke-width="15" fill="none" stroke-linecap="round"/>
+ <rect x="-32" y="-93" width="64" height="95" rx="16" fill="#163c50" stroke="#c6e4eb" stroke-width="7"/>
+ <rect x="-44" y="-164" width="88" height="70" rx="20" fill="#d6eef5"/>
+ <rect x="-31" y="-148" width="62" height="38" rx="11" fill="#0b3046"/>
+ <circle cx="-15" cy="-130" r="5" fill="#6bf1fd"/><circle cx="15" cy="-130" r="5" fill="#6bf1fd"/>
+ <path d="M0 -165 V-181" stroke="#dceaf0" stroke-width="5"/><circle cy="-185" r="5" fill="#66ecff"/>
+ <rect x="-13" y="-48" width="26" height="9" rx="4" fill="#4fedfe"/>
+</g>
+<g id="fog0"><ellipse cx="550" cy="589" rx="450" ry="22" fill="#9ed9dc" opacity=".075"/><ellipse cx="1120" cy="578" rx="350" ry="21" fill="#b7e3f0" opacity=".04"/></g>
+</svg>
+<div id="copy0" class="copy"><div class="label">CHAPTER I / THE SILENCE</div><div class="rule"></div><div class="line">NO ONE<br/>LEFT TO<br/>ANSWER.</div><p class="sub">Until a forgotten machine heard something impossible.</p></div>
+</div>
+<!-- SHOT 2: deep cyan signal macro, painterly geometric concept -->
+<div id="shot1" class="shot">
+<svg class="art" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+<defs>
+ <linearGradient id="n1" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#070e25"/><stop offset=".5" stop-color="#14374f"/><stop offset="1" stop-color="#06202f"/></linearGradient>
+ <radialGradient id="halo1"><stop stop-color="#e7ffff" stop-opacity="1"/><stop offset=".1" stop-color="#80f5ff" stop-opacity=".85"/><stop offset=".4" stop-color="#41aeff" stop-opacity=".38"/><stop offset="1" stop-color="#009fee" stop-opacity="0"/></radialGradient>
+ <linearGradient id="hand1" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#ecfaff"/><stop offset="1" stop-color="#5b90aa"/></linearGradient>
+</defs>
+<rect width="1280" height="720" fill="url(#n1)"/>
+<path d="M0 555 L235 541 380 563 615 526 900 568 1150 538 1280 550 V720 H0Z" fill="#102233"/>
+<path d="M0 555 L235 541 380 563 615 526 900 568 1150 538 1280 550" fill="none" stroke="#45677b" stroke-width="5"/>
+<path d="M650 566 l65 18 40 -15 35 29 51 16" stroke="#5a9aaf" stroke-width="6" fill="none"/>
+<g id="pulse-ring" opacity="0">
+ <circle cx="714" cy="572" r="150" fill="url(#halo1)"/><circle cx="714" cy="572" r="310" fill="url(#halo1)" opacity=".62"/>
+</g>
+<g id="orb1"><circle cx="714" cy="572" r="15" fill="#d8ffff"/><circle cx="714" cy="572" r="5" fill="white"/></g>
+<g id="s1-rings" fill="none" stroke="#62efff" opacity=".7">
+ <circle cx="714" cy="572" r="40" stroke-width="4"/>
+ <circle cx="714" cy="572" r="76" stroke-width="2" opacity=".7"/>
+ <circle cx="714" cy="572" r="115" stroke-width="2" opacity=".4"/>
+</g>
+<g id="s1-sparks"></g>
+<g id="robot-hand" transform="translate(-90 0)">
+ <path d="M0 650 L170 490 L302 418 L368 443 L414 490 L520 510" fill="none" stroke="#152d42" stroke-width="105" stroke-linejoin="round" stroke-linecap="round"/>
+ <path d="M0 650 L170 490 L302 418 L368 443 L414 490 L520 510" fill="none" stroke="url(#hand1)" stroke-width="69" stroke-linejoin="round" stroke-linecap="round"/>
+ <path d="M480 510 L544 483 L597 477" fill="none" stroke="#d9f2f8" stroke-width="27" stroke-linecap="round"/>
+ <path d="M477 512 L530 540 L582 553" fill="none" stroke="#c3e8f3" stroke-width="23" stroke-linecap="round"/>
+ <rect x="176" y="440" width="63" height="78" rx="15" fill="#102d45" stroke="#76d8ec" stroke-width="5" transform="rotate(-40 205 478)"/>
+</g>
+<text x="102" y="622" font-size="16" letter-spacing="5" fill="#9bd8ee">SIGNAL DETECTED / UNKNOWN ORIGIN</text>
+</svg>
+<div id="copy1" class="copy"><div class="label">CHAPTER II / THE DISCOVERY</div><div class="rule" style="margin-left:auto"></div><div class="line">ONE PULSE<br/>BENEATH<br/>THE STONE.</div><p class="sub">Not a warning. Not an order. A heartbeat.</p></div>
+</div>
+<!-- SHOT 3: painterly dawn reveal and animated skyline relighting -->
+<div id="shot2" class="shot">
+<svg class="art" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+<defs>
+ <linearGradient id="n2" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#21244c"/><stop offset=".51" stop-color="#b56570"/><stop offset=".82" stop-color="#ffbf83"/><stop offset="1" stop-color="#624b65"/></linearGradient>
+ <radialGradient id="sun2"><stop stop-color="#fff6d7" stop-opacity=".96"/><stop offset=".25" stop-color="#ffe7b1" stop-opacity=".6"/><stop offset="1" stop-color="#ffc99e" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="1280" height="720" fill="url(#n2)"/>
+<circle id="s2-sun" cx="922" cy="393" r="310" fill="url(#sun2)" opacity="0"/>
+<g id="s2-ribbons" stroke="#ffdfb9" fill="none" opacity=".15"><path d="M0 120 Q620 250 1280 55" stroke-width="4"/><path d="M0 230 Q680 340 1280 150" stroke-width="2"/></g>
+<g id="s2-city" transform="translate(0 0)">
+ <path d="M0 565 V420 H100 V495 H178 V311 H267 V480 H363 V252 H463 V485 H520 V351 H632 V489 H725 V283 H831 V504 H925 V380 H1010 V490 H1080 V305 H1180 V469 H1280 V565Z" fill="#24314e"/>
+ <g id="s2-windows"></g>
+</g>
+<path d="M0 592 Q430 579 880 580 T1280 581 V720 H0Z" fill="#111c34"/>
+<path d="M0 588 Q430 576 880 578 T1280 579" stroke="#a16c70" stroke-width="3" opacity=".75"/>
+<g id="s2-light-wave" fill="none" stroke="#e9ffed" stroke-width="5" opacity=".0">
+ <circle cx="714" cy="577" r="20"/>
+ <circle cx="714" cy="577" r="70"/>
+</g>
+<g id="tiny-robot" transform="translate(721 530)">
+ <path d="M-22 -12 L-27 50 M22 -12 L27 50 M-24 -77 L-41 -15 M24 -77 L41 -15" stroke="#cadce1" stroke-width="12" stroke-linecap="round"/>
+ <rect x="-31" y="-99" width="62" height="93" rx="15" fill="#1d3b4d" stroke="#cde4e9" stroke-width="5"/>
+ <rect x="-43" y="-165" width="86" height="67" rx="19" fill="#d8eaf0"/>
+ <rect x="-31" y="-149" width="62" height="36" rx="12" fill="#153c50"/>
+ <circle cx="-15" cy="-132" r="5" fill="#8df6ff"/><circle cx="15" cy="-132" r="5" fill="#8df6ff"/>
+</g>
+<g id="s2-motes"></g>
+</svg>
+<div id="copy2" class="copy"><div class="label" style="color:#ffe4ad">CHAPTER III / THE AWAKENING</div><div class="rule" style="background:#ffdb9b"></div><div class="line">THE CITY<br/>REMEMBERED.</div><p class="sub" style="color:#fff0df">Sometimes a single signal is enough.</p></div>
+</div>
+<div class="meta"><span>AETHERRENDERING / AN ORIGINAL SHORT</span><span>THE LAST SIGNAL · 001</span></div>
+</section>
+<audio id="score" class="clip" src="assets/audio/creative-score.wav" data-start="0" data-duration="15" data-track-index="10" data-volume="1"></audio>
+<div id="letterbox-top"></div><div id="letterbox-bottom"></div>
+</div>
+<script src="assets/vendor/gsap.min.js"></script>
+<script>
+(()=>{
+const NS='http://www.w3.org/2000/svg';
+function node(parent,tag,attrs){const e=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));parent.appendChild(e);return e;}
+const stars=document.querySelector('#s0-stars');
+for(let i=0;i<51;i++)node(stars,'circle',{cx:(i*171+59)%1280,cy:(i*89+23)%340,r:1+i%2,fill:'#cce8f4',opacity:.14+(i%5)*.1});
+function windows(parentId,blocks,clss){const parent=document.getElementById(parentId);
+for(let n=0;n<blocks.length;n++){let [x,top,w]=blocks[n];let col=Math.floor((w-14)/25),row=Math.floor((540-top)/32);for(let j=0;j<Math.min(row,8);j++)for(let k=0;k<Math.min(col,4);k++){if((j*7+k*3+n)%5===2)continue;node(parent,'rect',{x:x+14+k*24,y:top+15+j*32,width:9,height:13,rx:1,fill:(j+k)%5===0?'#ffcc91':'#91dff5',opacity:clss==='city-light'?'.02':'.16',class:clss});}}}
+windows('s0-windows',[[97,361,111],[279,306,92],[464,398,73],[617,336,113],[803,404,101],[980,327,105],[1141,437,139]],'dark-light');
+windows('s2-windows',[[0,420,100],[178,311,89],[363,252,100],[520,351,112],[725,283,106],[925,380,85],[1080,305,100]],'city-light');
+const sparks=document.querySelector('#s1-sparks');
+for(let i=0;i<34;i++){const theta=i*2.399963, r=35+(i*43)%240;node(sparks,'circle',{cx:714+Math.cos(theta)*r,cy:572+Math.sin(theta)*r*.7,r:1.5+i%3,fill:i%4===0?'#fff3cc':'#8feaff',opacity:.25+(i%4)*.18,class:'spark'});}
+const motes=document.querySelector('#s2-motes');
+for(let i=0;i<26;i++)node(motes,'circle',{cx:(i*157+69)%1280,cy:260+(i*107)%310,r:1+(i%3),fill:'#fff2cd',opacity:.3,class:'mote'});
+const tl=gsap.timeline({paused:true});
+const ease='power2.inOut';
+// Shot one: parallax and robot as cutout-motion graphic
+tl.fromTo('#s0-distant',{x:0},{x:-72,duration:4.9,ease:'none'},0);
+tl.fromTo('#s0-city',{x:0},{x:-132,duration:4.9,ease:'none'},0);
+tl.fromTo('#walk-robot',{x:0},{x:245,duration:4.6,ease:'power1.inOut'},.35);
+tl.to('#walk-left-leg',{rotation:18,duration:.25,repeat:8,yoyo:true,ease:'sine.inOut',transformOrigin:'0% 0%'},.45);
+tl.to('#walk-right-leg',{rotation:-18,duration:.25,repeat:8,yoyo:true,ease:'sine.inOut',transformOrigin:'0% 0%'},.45);
+tl.fromTo('#copy0',{opacity:0,y:30},{opacity:1,y:0,duration:.95,ease:'power3.out'},.3);
+tl.to('#copy0',{opacity:0,y:-20,duration:.5},4.46);
+tl.to('#shot0',{opacity:0,duration:.75},4.65);
+// Shot two: GSAP-driven procedural signal anatomy
+tl.fromTo('#shot1',{opacity:0},{opacity:1,duration:.75},4.65);
+tl.fromTo('#copy1',{opacity:0,x:65},{opacity:1,x:0,duration:.9,ease:'power3.out'},5.2);
+tl.fromTo('#robot-hand',{x:-200,y:50,rotation:-9},{x:10,y:0,rotation:0,duration:3.7,ease:'power2.inOut',transformOrigin:'45% 85%'},5.02);
+tl.fromTo('#orb1',{scale:.4,opacity:.22},{scale:1.7,opacity:1,duration:2.6,ease:'sine.inOut',transformOrigin:'50% 50%'},6.1);
+tl.fromTo('#pulse-ring',{opacity:0,scale:.5},{opacity:1,scale:1.55,duration:3,ease:'power3.out',transformOrigin:'56% 80%'},6.1);
+tl.fromTo('#s1-rings',{opacity:0,scale:.1},{opacity:.86,scale:2.8,duration:3.6,ease:'power2.out',transformOrigin:'56% 80%'},5.9);
+tl.fromTo('.spark',{opacity:0,scale:.3},{opacity:.9,scale:1.4,duration:1.8,stagger:{each:.023,from:'random'},ease:'power2.out',transformOrigin:'center center'},7.3);
+tl.to('#copy1',{opacity:0,x:35,duration:.5},9.55);
+tl.to('#shot1',{opacity:0,duration:.9},9.72);
+// Shot three: staggered building relights, sun and lyric payoff
+tl.fromTo('#shot2',{opacity:0},{opacity:1,duration:.85},9.65);
+tl.fromTo('#s2-sun',{opacity:0,y:48,scale:.8},{opacity:1,y:0,scale:1.12,duration:4.1,ease:'power2.out',transformOrigin:'72% 54%'},9.7);
+tl.fromTo('#s2-city',{x:60},{x:-65,duration:5.3,ease:'none'},9.7);
+tl.fromTo('.city-light',{opacity:.01},{opacity:.84,duration:.55,stagger:{amount:3.6,from:'center',grid:'auto'},ease:'sine.out'},10.2);
+tl.fromTo('#s2-light-wave',{opacity:0,scale:.05},{opacity:.85,scale:7,duration:2.8,ease:'power2.out',transformOrigin:'55% 80%'},9.85);
+tl.fromTo('#copy2',{opacity:0,y:55},{opacity:1,y:0,duration:1.1,ease:'power4.out'},10.3);
+tl.fromTo('.mote',{opacity:0,y:25},{opacity:.78,y:-19,duration:2.5,stagger:{each:.065,from:'random'},ease:'power1.out'},11.1);
+tl.to('#copy2',{opacity:0,duration:.45},14.45);
+tl.to('#shot2',{opacity:0,duration:.3},14.67);
+window.__timelines=window.__timelines||{};
+window.__timelines['aether-creative-duel']=tl;
+tl.seek(0);
+})();
+</script>
+</body></html>
